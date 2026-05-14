@@ -5,7 +5,7 @@ hide: true
 show_reading_time: false
 ---
 
-Hi! My name is [Your Full Name]
+Hi! My name is Yiming Yin
 
 ### Development Environment
 
@@ -39,12 +39,12 @@ Hi! My name is [Your Full Name]
 
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <a href="{{site.baseurl}}/code/javascript" style="text-decoration: none;">
+    <a href="https://github.com/Open-Coding-Society/portfolio/blob/main/_projects/Personal%20Accomplishment-Yiming/Notebooks/CSSE%20Lessons.ipynb" style="text-decoration: none;">
         <div style="background-color: var(--green); color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
            JS Basics
         </div>
     </a>
-    <a href="{{site.baseurl}}/game/essentials/variables" style="text-decoration: none;">
+    <a href="https://github.com/Open-Coding-Society/portfolio/blob/main/_projects/Personal%20Accomplishment-Yiming/Notebooks/Aquatic%20Game%20Level%20Explanantion.ipynb" style="text-decoration: none;">
         <div style="background-color: var(--blue); color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
            JS Variables
         </div>
@@ -56,7 +56,7 @@ Hi! My name is [Your Full Name]
     </a>
     <a href="{{site.baseurl}}/network/stack" style="text-decoration: none;">
         <div style="background-color: var(--orange); color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
-           Networking
+           Character Interactions & Boss Fight
         </div>
     </a>
 </div>
@@ -68,11 +68,14 @@ Hi! My name is [Your Full Name]
 > Here is my game progress through coding, click to see these in the browser
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <a href="{{site.baseurl}}/snake" class="btn">
+    <a href="https://precia-verma.github.io/Group-projects/snake" class="btn">
         Snake
     </a>
-    <a href="{{site.baseurl}}/gamify/parallax" class="btn" style="background-color: var(--green); ">
-        Fish
+    <a href="https://teamspace.opencodingsociety.com/team-space-portal" class="btn" style="background-color: var(--green); ">
+        Team Aquatic (Space)
+    </a>
+    <a href="{{site.baseurl}}/personal-accomplishment-yiming/version-2-review-csse/" class="btn" style="background-color: var(--blue);">
+        Version 2
     </a>
     <a href="{{site.baseurl}}/gamify" class="btn" style="background-color: var(--teal);">
        Gamify

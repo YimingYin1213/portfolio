@@ -53,13 +53,30 @@
 {%- endcomment -%}
 <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 <script src="{{ site.baseurl }}/assets/js/user-preferences.js"></script>
-<!-- Set up javaURI globally for OCS Analytics Tracker -->
+<!-- Set up shared frontend API config before global scripts run -->
 <script>
-    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        window.javaURI = "http://localhost:8585";
-    } else {
-        window.javaURI = "https://spring.opencodingsociety.com";
+  (function() {
+    const localhostHosts = new Set(["localhost", "127.0.0.1"]);
+    const params = new URLSearchParams(location.search);
+    const override = params.get("localApi");
+    let useLocalApi = false;
+
+    try {
+      if (override === "1") {
+        localStorage.setItem("useLocalApi", "true");
+      } else if (override === "0") {
+        localStorage.removeItem("useLocalApi");
+      }
+
+      useLocalApi = localhostHosts.has(location.hostname) && localStorage.getItem("useLocalApi") === "true";
+    } catch {
+      useLocalApi = false;
     }
+
+    window.baseurl = "{{ site.baseurl }}";
+    window.pythonURI = useLocalApi ? "http://localhost:8587" : "https://flask.opencodingsociety.com";
+    window.javaURI = useLocalApi ? "http://localhost:8585" : "https://spring.opencodingsociety.com";
+  })();
 </script>
 <!-- OCS Analytics Tracking Script (loaded on every page) -->
 <script src="{{ site.baseurl }}/assets/js/ocs-analytics-tracker.js" defer></script>
@@ -67,7 +84,6 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 {%- endif -%}
 <!-- Keyboard Shortcuts (Alt+Shift+key navigation, loaded on every page) -->
-<script>window.baseurl = "{{ site.baseurl }}";</script>
 <script src="{{ site.baseurl }}/assets/js/keyboard-shortcuts.js" defer></script>
 
 <!-- AI A/B Test Engine SDK (passes site.baseurl for asset resolution) -->

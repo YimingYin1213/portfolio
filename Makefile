@@ -1,7 +1,8 @@
 OST ?= localhost
 PORT ?= 4500
 LOG_FILE = /tmp/jekyll$(PORT).log
-PYTHON := venv/bin/python3
+PYTHON_VENV := venv
+PYTHON := $(PYTHON_VENV)/bin/python3
 
 SHELL = /bin/bash -c
 .SHELLFLAGS = -e
@@ -250,7 +251,7 @@ serve: serve-current
 build: build-current
 
 # Multi-course file splitting
-split-courses:
+split-courses: python-install
 	@echo " ------ Splitting multi-course files... -------"
 	@python3 scripts/split_multi_course_files.py
 
@@ -259,13 +260,13 @@ clean-courses:
 	@python3 scripts/split_multi_course_files.py clean
 
 # Notebook and DOCX conversion
-convert: $(MARKDOWN_FILES) convert-docx
+convert: python-install $(MARKDOWN_FILES) convert-docx
 $(DESTINATION_DIRECTORY)/%_IPYNB_2_.md: _notebooks/%.ipynb
 	@mkdir -p $(@D)
 	@$(PYTHON) -c "from scripts.convert_notebooks import convert_notebooks; convert_notebooks()"
 
 # Single notebook conversion (faster for development)
-convert-single:
+convert-single: python-install
 	@if [ -z "$(NOTEBOOK_FILE)" ]; then \
 		echo "Error: NOTEBOOK_FILE variable not set"; \
 		exit 1; \
@@ -274,7 +275,7 @@ convert-single:
 	@$(PYTHON) scripts/convert_notebooks.py "$(NOTEBOOK_FILE)"
 
 # DOCX conversion
-convert-docx:
+convert-docx: python-install
 	@if [ -d "_docx" ] && [ "$(shell ls -A _docx 2>/dev/null)" ]; then \
 		$(PYTHON) scripts/convert_docx.py; \
 	else \
@@ -456,6 +457,17 @@ bundle-install:
 		mkdir -p .bundle && touch .bundle/install_marker; \
 	fi
 
+# Python virtualenv and package install (dependency for conversion steps)
+python-install:
+	@if [ ! -x $(PYTHON) ]; then \
+		python3 -m venv $(PYTHON_VENV); \
+	fi
+	@if [ ! -f .venv/install_marker ] || [ requirements.txt -nt .venv/install_marker ]; then \
+		$(PYTHON) -m pip install --upgrade pip; \
+		$(PYTHON) -m pip install -r requirements.txt; \
+		mkdir -p .venv && touch .venv/install_marker; \
+	fi
+
 # Start Jekyll server (no auto-watch, we control rebuilds manually)
 # Supports optional _config.local.yml override for local settings (e.g. baseurl)
 jekyll-serve: bundle-install
@@ -491,7 +503,7 @@ wait-for-server:
 	done
 
 # Single DOCX file conversion (for dev mode)
-convert-docx-single:
+convert-docx-single: python-install
 	@if [ -z "$(DOCX_FILE)" ]; then \
 		echo "Error: DOCX_FILE variable not set"; \
 		exit 1; \

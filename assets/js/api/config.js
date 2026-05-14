@@ -1,25 +1,45 @@
----
----
+const DEFAULT_BASEURL = "/portfolio";
+const localhostHosts = new Set(["localhost", "127.0.0.1"]);
 
-// ^^ Do not remove the above front matter, it is required for Jekyll processing
+function getBaseurl() {
+    if (location.pathname === DEFAULT_BASEURL || location.pathname.startsWith(`${DEFAULT_BASEURL}/`)) {
+        return DEFAULT_BASEURL;
+    }
 
-export const baseurl = "{{ site.baseurl }}";
-
-export var pythonURI;
-if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-    pythonURI = "http://localhost:8587";  // Same URI for localhost or 127.0.0.1
-} else {
-    pythonURI = "https://flask.opencodingsociety.com";
-
+    return "";
 }
 
-export var javaURI;
-// 127.0.0.1:8585 does not work for some machines
-if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-        javaURI = "http://localhost:8585";
-} else {
-    javaURI = "https://spring.opencodingsociety.com";
+function getLocalApiPreference() {
+    const params = new URLSearchParams(location.search);
+    const override = params.get("localApi");
+
+    try {
+        if (override === "1") {
+            localStorage.setItem("useLocalApi", "true");
+        } else if (override === "0") {
+            localStorage.removeItem("useLocalApi");
+        }
+
+        return localhostHosts.has(location.hostname) && localStorage.getItem("useLocalApi") === "true";
+    } catch {
+        return false;
+    }
 }
+
+export const baseurl = getBaseurl();
+const useLocalApi = getLocalApiPreference();
+
+export const pythonURI = useLocalApi
+    ? "http://localhost:8587"
+    : "https://flask.opencodingsociety.com";
+
+export const javaURI = useLocalApi
+    ? "http://localhost:8585"
+    : "https://spring.opencodingsociety.com";
+
+window.baseurl = baseurl;
+window.pythonURI = pythonURI;
+window.javaURI = javaURI;
 
 export const fetchOptions = {
     method: 'GET',  // Default method is GET
@@ -31,6 +51,8 @@ export const fetchOptions = {
         'X-Origin': 'client' // Custom header to identify source
     },
 };
+
+window.fetchOptions = fetchOptions;
 
 // User Login Function (allows both GET and POST)
 export function login(options) {
