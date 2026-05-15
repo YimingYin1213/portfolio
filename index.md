@@ -39,14 +39,14 @@ Hi! My name is Yiming Yin
 
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <a href="https://github.com/Open-Coding-Society/portfolio/blob/main/_projects/Personal%20Accomplishment-Yiming/Notebooks/CSSE%20Lessons.ipynb" style="text-decoration: none;">
+    <a href="{{site.baseurl}}/personal-accomplishment-yiming/cs111-notes/" style="text-decoration: none;">
         <div style="background-color: var(--green); color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
-           JS Basics
+           CS111
         </div>
     </a>
-    <a href="https://github.com/Open-Coding-Society/portfolio/blob/main/_projects/Personal%20Accomplishment-Yiming/Notebooks/Aquatic%20Game%20Level%20Explanantion.ipynb" style="text-decoration: none;">
+    <a href="{{site.baseurl}}/personal-accomplishment-yiming/aquatic-game-level-explanation/" style="text-decoration: none;">
         <div style="background-color: var(--blue); color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
-           JS Variables
+           Aquatic Explanation
         </div>
     </a>
     <a href="{{site.baseurl}}/gamerunner" style="text-decoration: none;">

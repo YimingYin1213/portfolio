@@ -1109,7 +1109,7 @@ def convert_notebooks():
         userInfo="Notebook conversion progress:", total=(len(notebook_files))
     )
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=maxCores) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=maxCores) as executor:
         futures = {
             executor.submit(process_notebook, notebook_file): notebook_file
             for notebook_file in notebook_files
