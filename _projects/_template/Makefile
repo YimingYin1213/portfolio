@@ -29,7 +29,7 @@ JS_DEST = $(WORKSPACE_ROOT)/assets/js/projects/$(PROJECT_NAME)
 CSS_DEST = $(WORKSPACE_ROOT)/assets/css/projects/$(PROJECT_NAME)
 SASS_DEST = $(WORKSPACE_ROOT)/_sass/projects/$(PROJECT_NAME)
 IMAGES_DEST = $(WORKSPACE_ROOT)/images/projects/$(PROJECT_NAME)
-NOTEBOOK_DEST = $(WORKSPACE_ROOT)/_notebooks/projects/$(PROJECT_NAME)
+NOTEBOOK_DEST = $(WORKSPACE_ROOT)/_notebooks/projects/$(PROJECT_SLUG)
 DOCS_DEST = $(WORKSPACE_ROOT)/_posts/projects/$(PROJECT_SLUG)
 
 ###########################################
@@ -41,6 +41,9 @@ build:
 	@mkdir -p "$(NOTEBOOK_DEST)"
 	@if [ -f "notebook.src.ipynb" ]; then \
 		cp notebook.src.ipynb "$(NOTEBOOK_DEST)/$(NOTEBOOK_FILENAME)" 2>/dev/null || true; \
+	fi
+	@if [ -d "Notebooks" ]; then \
+		find Notebooks -maxdepth 1 -name '*.ipynb' -exec /bin/bash -c 'for notebook in "$$@"; do filename=$$(basename "$$notebook"); safe_filename=$$(printf "%s" "$$filename" | tr " " "-"); cp "$$notebook" "$(NOTEBOOK_DEST)/$$safe_filename" 2>/dev/null || true; done' _ {} +; \
 	fi
 	@$(MAKE) assets
 	@$(MAKE) docs
@@ -97,10 +100,22 @@ watch:
 		changed=0; \
 		if [ -f "$(PROJECT_SRC)/notebook.src.ipynb" ] && [ "$(PROJECT_SRC)/notebook.src.ipynb" -nt /tmp/.project_$(PROJECT_NAME)_marker ]; then \
 			echo "  🔄 Notebook changed - copying and converting..."; \
-			mkdir -p $(NOTEBOOK_DEST); \
-			cp $(PROJECT_SRC)/notebook.src.ipynb $(NOTEBOOK_DEST)/$(NOTEBOOK_FILENAME) 2>/dev/null || true; \
+			mkdir -p "$(NOTEBOOK_DEST)"; \
+			cp "$(PROJECT_SRC)/notebook.src.ipynb" "$(NOTEBOOK_DEST)/$(NOTEBOOK_FILENAME)" 2>/dev/null || true; \
 			cd $(WORKSPACE_ROOT) && make convert-single NOTEBOOK_FILE="$(NOTEBOOK_DEST)/$(NOTEBOOK_FILENAME)" 2>&1; \
 			changed=1; \
+		fi; \
+		if [ -d "$(PROJECT_SRC)/Notebooks" ]; then \
+			find "$(PROJECT_SRC)/Notebooks" -maxdepth 1 -name '*.ipynb' -newer /tmp/.project_$(PROJECT_NAME)_marker -print0 2>/dev/null | \
+			while IFS= read -r -d '' notebook; do \
+				echo "  🔄 Notebook changed: $$notebook"; \
+				mkdir -p "$(NOTEBOOK_DEST)"; \
+				filename=$$(basename "$$notebook"); \
+				safe_filename=$$(printf "%s" "$$filename" | tr " " "-"); \
+				cp "$$notebook" "$(NOTEBOOK_DEST)/$$safe_filename" 2>/dev/null || true; \
+				cd $(WORKSPACE_ROOT) && make convert-single NOTEBOOK_FILE="$(NOTEBOOK_DEST)/$$safe_filename" 2>&1; \
+				changed=1; \
+			done; \
 		fi; \
 		if [ -d "$(PROJECT_SRC)/js" ]; then \
 			for file in $$(find $(PROJECT_SRC)/js -type f -newer /tmp/.project_$(PROJECT_NAME)_marker 2>/dev/null); do \

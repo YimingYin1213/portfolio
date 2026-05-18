@@ -51,6 +51,11 @@ jobs:
           make build-registered-projects  # Distribute all registered project files to Jekyll locations
           make build-registered-docs  # Distribute all registered documentation files to Jekyll locations  
 
+      - name: Build personal accomplishment project
+        run: |
+          make -C "_projects/Personal Accomplishment-Yiming" build
+          make -C "_projects/Personal Accomplishment-Yiming" docs
+
       - name: Verify registered docs output
         run: |
           if [ -d "_posts/projects" ]; then
