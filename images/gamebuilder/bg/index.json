@@ -1,4 +1,6 @@
 [
+  { "name": "Aquatic Reef", "src": "Aquatic.png" },
+  { "name": "Above the Water", "src": "Above-the-water.png" },
   { "name": "Alien Planet", "src": "alien_planet.jpg" },
   { "name": "Sky kingdom", "src": "clouds.jpg" }
 ]

@@ -361,6 +361,10 @@
      * Fetch user UID from Python backend
      */
     async function fetchUserUID() {
+        const isLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        if (window.shouldFetchIdentity === false || (window.shouldFetchIdentity === undefined && isLocalPreview)) {
+            return null;
+        }
         try {
             const response = await fetch(`${window.pythonURI}/api/id`, {
                 credentials: 'include'

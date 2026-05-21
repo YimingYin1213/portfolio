@@ -1,9 +1,19 @@
-import { baseurl, pythonURI, fetchOptions } from './config.js';
+import { baseurl, pythonURI, fetchOptions, shouldFetchIdentity } from './config.js';
 
 console.log("login.js loaded");
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Base URL:", baseurl); // Debugging line
+    if (!shouldFetchIdentity) {
+        waitForElement('#loginArea', 20, 100).then(loginArea => {
+            loginArea.innerHTML = `<a href="${baseurl}/login">Login</a>`;
+            loginArea.style.opacity = '1';
+            waitForElement('.trigger', 20, 100).then(() => {
+                updateNavigation(false);
+            });
+        }).catch(() => {});
+        return;
+    }
     waitForElement('#loginArea', 20, 100).then(loginArea => {
         getCredentials(baseurl)
             .then(data => {

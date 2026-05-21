@@ -43,7 +43,7 @@ build:
 		cp notebook.src.ipynb "$(NOTEBOOK_DEST)/$(NOTEBOOK_FILENAME)" 2>/dev/null || true; \
 	fi
 	@if [ -d "Notebooks" ]; then \
-		find Notebooks -maxdepth 1 -name '*.ipynb' -exec /bin/bash -c 'for notebook in "$$@"; do filename=$$(basename "$$notebook"); safe_filename=$$(printf "%s" "$$filename" | tr " " "-"); cp "$$notebook" "$(NOTEBOOK_DEST)/$$safe_filename" 2>/dev/null || true; done' _ {} +; \
+		find Notebooks -maxdepth 1 -name '*.ipynb' -exec /bin/bash -c 'for notebook in "$$@"; do filename=$$(basename "$$notebook"); safe_filename=$$(printf "%s" "$$filename" | tr " " "-"); cp "$$notebook" "$(NOTEBOOK_DEST)/$(DATE_OF_CREATION)-$$safe_filename" 2>/dev/null || true; done' _ {} +; \
 	fi
 	@$(MAKE) assets
 	@$(MAKE) docs
@@ -112,8 +112,9 @@ watch:
 				mkdir -p "$(NOTEBOOK_DEST)"; \
 				filename=$$(basename "$$notebook"); \
 				safe_filename=$$(printf "%s" "$$filename" | tr " " "-"); \
-				cp "$$notebook" "$(NOTEBOOK_DEST)/$$safe_filename" 2>/dev/null || true; \
-				cd $(WORKSPACE_ROOT) && make convert-single NOTEBOOK_FILE="$(NOTEBOOK_DEST)/$$safe_filename" 2>&1; \
+				dated_filename="$(DATE_OF_CREATION)-$$safe_filename"; \
+				cp "$$notebook" "$(NOTEBOOK_DEST)/$$dated_filename" 2>/dev/null || true; \
+				cd $(WORKSPACE_ROOT) && make convert-single NOTEBOOK_FILE="$(NOTEBOOK_DEST)/$$dated_filename" 2>&1; \
 				changed=1; \
 			done; \
 		fi; \

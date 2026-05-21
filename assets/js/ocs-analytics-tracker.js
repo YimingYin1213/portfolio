@@ -349,6 +349,11 @@
      */
     async function submitAnalytics() {
         try {
+            if (window.shouldFetchIdentity === false) {
+                debug('Skipping analytics submission on localhost preview');
+                return;
+            }
+
             const javaURI = window.javaURI || '/api';
             const payload = preparePayload();
             
@@ -386,6 +391,11 @@
      */
     function init() {
         debug('Initializing OCS Analytics Tracker');
+
+        if (window.shouldFetchIdentity === false) {
+            debug('Analytics tracker disabled for localhost preview');
+            return;
+        }
         
         // Extract content info from URL and page
         extractContentInfo();

@@ -87,9 +87,19 @@
 <script src="{{ site.baseurl }}/assets/js/keyboard-shortcuts.js" defer></script>
 
 <!-- AI A/B Test Engine SDK (passes site.baseurl for asset resolution) -->
-<script src="http://localhost:3000/sdk.js"
-  data-site-baseurl="{{ site.baseurl }}"
-  data-project-id="cmnfour780000f63gu69kg2v8"></script>
+<script>
+  (function () {
+    const isLocalHost = new Set(["localhost", "127.0.0.1", "0.0.0.0"]).has(window.location.hostname);
+    const isSdkHost = isLocalHost && window.location.port === "3000";
+    if (!isSdkHost) return;
+
+    const script = document.createElement("script");
+    script.src = "http://localhost:3000/sdk.js";
+    script.dataset.siteBaseurl = "{{ site.baseurl }}";
+    script.dataset.projectId = "cmnfour780000f63gu69kg2v8";
+    document.head.appendChild(script);
+  })();
+</script>
 <script type="importmap">
 {
   "imports": {

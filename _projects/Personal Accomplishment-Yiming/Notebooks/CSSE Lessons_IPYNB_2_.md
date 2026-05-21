@@ -16,7 +16,7 @@ html {
 A short review notebook with simple notes and code examples for common JavaScript topics.
 
 ## Project Checklist
-This table connects each project requirement to the matching CS111 topic section below and keeps the evidence aligned to what is directly shown in my portfolio work, project files, and documented verification steps.
+This table connects each project requirement to the closest matching CS111 topic section below. The links are not all perfect one-to-one lessons, so the evidence section after the table pulls real code from my aquatic game level and engine files to prove the relationship directly.
 
 | Learning Objective | Related Notes | Project Evidence Required | Assessment Method | Status |
 | --- | --- | --- | --- | --- |
@@ -64,19 +64,7 @@ This table connects each project requirement to the matching CS111 topic section
 | Integration Testing | [Functions](#functions) | Verify score saving and profile requests with backend success paths or fallback handling | Demo: fetch-based save/load behavior and fallback flow are documented for verification | [x] |
 | API Error Handling | [Conditionals](#conditionals) | Guard fetch requests with try/catch and fallback UI behavior | Code review: explicit error handling for request failures | [x] |
 
-### Completion Notes
-- I rewrote the rows that were previously overstated so the evidence matches what is directly shown or documented in the portfolio.
-- The debugging rows now describe documented verification workflows instead of claiming undocumented live demonstrations.
-- The hitbox row now focuses on configuring and refining collision boundaries, which is what the current project evidence directly supports.
-- The code comments row now claims the presence of JSDoc comments instead of a specific comment-density threshold that was not measured.
-- The integration testing row now refers to documented backend and fallback verification rather than overstating a fully captured live backend proof.
-
-### Checked Evidence
-- OOP evidence exists in the game engine files such as `Player.js`, `Npc.js`, and `Enemy.js`, where classes use `extends`, `super(...)`, and overridden `update()` behavior.
-- Game level setup and object configuration appear in level files and in the aquatic project configuration objects.
-- API, async, JSON, and error handling evidence appears in project files that use `fetch`, `await`, `.json()`, and fallback error handling.
-- Hitbox configuration is already present in player, NPC, and barrier data, and the builder documentation explains how those collision-box values are tuned.
-- Browser debugging evidence is documented through explicit Sources, Network, Application, and Elements verification steps so the checklist stays aligned with the current portfolio artifacts.
+[Jump to assessment evidence from my aquatic game level](#assessment-evidence-from-my-aquatic-game-level)
 
 <h2 id="functions">Functions</h2>
 - A function is a named block of code that is used to complete a specific task.
@@ -679,3 +667,203 @@ console.log(project.summary());
    source=source11
 %}
 
+
+## Assessment Evidence From My Aquatic Game Level
+The assessment-method column says things like code review, testing, or demo. This section actually does that by pulling code examples from my aquatic game level and related engine files, then explaining why each example matches the learning objective.
+
+### Classes, Inheritance, and Constructors
+These examples support the table rows for writing classes, inheritance, constructor chaining, and object instantiation.
+
+```js
+class GameLevelAquaticGameLevel {
+  constructor(gameEnv) {
+    this.gameEnv = gameEnv;
+    this.frontMenuActive = false;
+    const path = gameEnv.path || '';
+
+    const playerData = {
+      INIT_POSITION: { x: 180, y: 300 },
+      keypress: { up: 87, left: 65, down: 83, right: 68 }
+    };
+  }
+}
+```
+Relationship: this is direct evidence of class design because `GameLevelAquaticGameLevel` is a custom class I wrote for my project. The constructor stores level state and prepares configuration objects such as `playerData`, which also shows object instantiation and data setup.
+
+```js
+class Player extends Character {
+  constructor(data = null, gameEnv = null) {
+    super(data, gameEnv);
+    this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+    this.pressedKeys = {};
+  }
+}
+```
+Relationship: this is the clearest inheritance example in the project. `Player` extends `Character`, and `super(data, gameEnv)` proves constructor chaining. That is stronger evidence for those checklist rows than the short note section alone.
+
+### 2. Methods, Parameters, and Overriding
+These examples support the rows about methods, parameters, method overriding, and class behavior.
+
+```js
+class Npc extends Character {
+  constructor(data = null, gameEnv = null) {
+    super(data, gameEnv);
+    this.interact = data?.interact;
+  }
+
+  update() {
+    if (this.walkingArea) {
+      this.patrol();
+    }
+    this.draw();
+  }
+}
+```
+Relationship: this snippet shows both a constructor with parameters and a method override. The `update()` method changes inherited behavior for NPCs, which directly supports the method-overriding row in the checklist.
+
+```js
+const slimeNpc = {
+  id: 'Random Slime',
+  interact: function() {
+    if (!this.dialogueSystem) return;
+    const q1 = questState.firstQuest;
+    const q2 = questState.secondQuest;
+
+    if (q1.completed && !q2.accepted) {
+      this.dialogueSystem.addButtons([
+        {
+          text: 'Accept Quest #2',
+          action: async () => {
+            q2.accepted = true;
+            await transitionToSurface();
+          }
+        }
+      ]);
+    }
+  }
+};
+```
+Relationship: this is evidence for methods and parameters because the level uses object methods, passes data into dialogue functions, and uses `async` actions inside gameplay interactions. It also shows how my aquatic game level applies those ideas in a real quest system.
+
+### Conditionals, Booleans, Arrays, Objects, and Math
+These examples support the control-structure and data-type rows in the table.
+
+```js
+const aquaticSpriteOptions = [
+  { key: 'scuba-diver', label: 'Scuba Diver' },
+  { key: 'boy', label: 'Boy' },
+  { key: 'astro', label: 'Astro' }
+];
+
+const selectedAquaticSprite = aquaticSpriteOptions.find((option) =>
+  option.key === localStorage.getItem(aquaticSpriteStorageKey)
+) || aquaticSpriteOptions[0];
+```
+Relationship: this snippet proves arrays, objects, strings, booleans in conditions, and iteration by search. The sprite list is stored as objects inside an array, and `.find(...)` checks each option until it finds the player’s saved choice.
+
+```js
+const slimeNpc = {
+  right: { row: Math.min(1, 4 - 1), start: 0, columns: 3 },
+  left: { row: Math.min(2, 4 - 1), start: 0, columns: 3 },
+  hitbox: { widthPercentage: 0.1, heightPercentage: 0.2 }
+};
+```
+Relationship: this supports mathematical expressions and hitbox configuration. The row calculations show math in gameplay setup, and the hitbox object is direct evidence for the collision-boundary row in the checklist.
+
+```js
+const questState = {
+  firstQuest: { accepted: false, completed: false, collected: 0 },
+  secondQuest: { accepted: false, inSurface: false, completed: false, collected: 0 }
+};
+```
+Relationship: this is data abstraction in the project. Instead of loose variables, quest progress is grouped into structured objects, which matches the JSON/object row and the booleans row at the same time.
+
+### 4. Testing and Input/Output: Keyboard Input, Rendering, and Game Configuration
+These examples support the rows about keyboard input, rendering, and runtime configuration.
+
+```js
+this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+window.addEventListener('keydown', this._boundHandleKeyDown);
+window.addEventListener('keyup', this._boundHandleKeyUp);
+```
+Relationship: this is direct evidence for keyboard input. The assessment method says to test whether key handlers respond correctly in the playable project, and my aquatic level uses that exact input mapping for movement.
+
+```js
+const bgData = {
+  name: 'custom_bg',
+  src: backgroundAssetPath + '/Aquatic.png',
+  pixels: { height: 1960, width: 2940 }
+};
+```
+Relationship: this supports canvas rendering and `GameEnv` configuration because the level config chooses the background image, sizing, and runtime asset path before the engine draws anything.
+
+```js
+const playerData = {
+  id: 'playerData',
+  SCALE_FACTOR: selectedAquaticSprite.SCALE_FACTOR,
+  STEP_FACTOR: 1000,
+  INIT_POSITION: { x: 180, y: 300 },
+  keypress: { up: 87, left: 65, down: 83, right: 68 }
+};
+```
+Relationship: this is the best evidence for runtime game configuration. The level sets scale, movement speed, spawn position, and keyboard controls in one object used by the engine.
+
+### 5. API Integration, Async/Await, JSON, and Error Handling
+These examples support the rows about API integration, asynchronous I/O, JSON parsing, and error handling.
+
+```js
+function getCredentials(baseurl) {
+  const URL = pythonURI + '/api/id';
+  return fetch(URL, {
+    ...fetchOptions,
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) {
+      return null;
+    }
+    return response.json();
+  })
+  .catch(err => {
+    console.error('Fetch error: ', err);
+    return null;
+  });
+}
+```
+Relationship: this is direct proof for API integration and JSON parsing because it calls the backend, checks the HTTP result, and parses structured JSON. It also proves error handling because failed requests fall back safely instead of crashing.
+
+```js
+action: async () => {
+  q2.accepted = true;
+  q2.collected = 0;
+  this.dialogueSystem.closeDialogue();
+  await transitionToSurface();
+}
+```
+Relationship: this is concrete `async` and `await` usage inside my aquatic game level. The checklist row for asynchronous I/O is better supported by this project code than by the short basic notes section.
+
+### 6. Debugging and Verification Workflows
+The debugging rows in the table are not fully taught by the note sections themselves, so here is the direct relationship to my project work.
+
+```js
+console.log('login.js loaded');
+console.log('Base URL:', baseurl);
+console.error('Fetch error: ', err);
+```
+Relationship: this is console-debugging evidence because the project logs script startup, runtime values, and fetch failures while testing login and API behavior.
+
+```js
+hitbox: { widthPercentage: 0.1, heightPercentage: 0.2 }
+```
+Relationship: this is hit-box visualization evidence because those percentages are exactly what I inspect and tune when collision boundaries feel wrong in the aquatic level.
+
+Source-level debugging relationship: when the aquatic level uses multi-step quest logic like `if (q1.completed && !q2.accepted)`, I can pause in DevTools Sources and watch the booleans change as the player finishes quests.
+
+Network-debugging relationship: the `fetch(URL, ...)` login flow gives a real request to inspect in the Network tab, including status codes and returned JSON.
+
+Application-debugging relationship: the aquatic level reads saved values such as `localStorage.getItem(aquaticSpriteStorageKey)`, so the Application tab shows real persistent project data to inspect.
+
+Element-inspection relationship: the aquatic runner includes canvas output, menus, overlays, and dialogue UI, so the Elements tab can be used to inspect sizing, layering, and styling during the playable demo.
+
+### Conclusion
+The top table is most accurate when it is read together with this evidence section. The notes introduce the CS111 concepts, and the aquatic game level proves that I used those concepts in a real project through classes, quest logic, input handling, API calls, debugging, and structured game configuration.

@@ -25,6 +25,11 @@ export class CodeExecutor {
     const startTime = Date.now();
     const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
+    if (lang === 'javascript' && isLocalhost) {
+      this.runJavaScriptFallback(code, startTime);
+      return;
+    }
+
     let runURL;
     if (lang === 'python') runURL = `${this.pythonURI}/run/python`;
     else if (lang === 'java') runURL = `${this.javaURI}/run/java`;

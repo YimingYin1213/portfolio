@@ -28,6 +28,7 @@ function getLocalApiPreference() {
 
 export const baseurl = getBaseurl();
 const useLocalApi = getLocalApiPreference();
+export const shouldFetchIdentity = !localhostHosts.has(location.hostname) || useLocalApi;
 
 export const pythonURI = useLocalApi
     ? "http://localhost:8587"
@@ -40,6 +41,7 @@ export const javaURI = useLocalApi
 window.baseurl = baseurl;
 window.pythonURI = pythonURI;
 window.javaURI = javaURI;
+window.shouldFetchIdentity = shouldFetchIdentity;
 
 export const fetchOptions = {
     method: 'GET',  // Default method is GET
