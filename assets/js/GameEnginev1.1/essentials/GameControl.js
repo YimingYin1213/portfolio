@@ -4,6 +4,8 @@ class CanvasClickHandler {
         this.gameEnv = gameEnv;
         this.gameContainer = gameContainer;
         this._boundClick = this.handleCanvasClick.bind(this);
+        this._isBound = false;
+        this._boundContainer = null;
         console.log('[CanvasClickHandler] constructor:', {
             gameEnv: !!gameEnv,
             gameContainer: gameContainer,
@@ -16,13 +18,25 @@ class CanvasClickHandler {
             console.warn('[CanvasClickHandler] No gameContainer to bind click listener');
             return;
         }
+        if (this._isBound && this._boundContainer === this.gameContainer) {
+            return;
+        }
+        if (this._isBound && this._boundContainer && this._boundContainer !== this.gameContainer) {
+            this._boundContainer.removeEventListener('click', this._boundClick);
+        }
         this.gameContainer.addEventListener('click', this._boundClick);
+        this._isBound = true;
+        this._boundContainer = this.gameContainer;
         console.log('[CanvasClickHandler] Click listener bound to', this.gameContainer, 'id:', this.gameContainer.id);
         // Optionally add touch support here
     }
 
     removeInteractKeyListeners() {
-        this.gameContainer.removeEventListener('click', this._boundClick);
+        const target = this._boundContainer || this.gameContainer;
+        if (!target) return;
+        target.removeEventListener('click', this._boundClick);
+        this._isBound = false;
+        this._boundContainer = null;
         // Optionally remove touch support here
     }
 
@@ -114,7 +128,12 @@ class GameControl {
      */
     setupCanvasClickHandler() {
         if (this.gameEnv && this.gameContainer) {
-            this._canvasClickHandler = new CanvasClickHandler(this.gameEnv, this.gameContainer);
+            if (!this._canvasClickHandler) {
+                this._canvasClickHandler = new CanvasClickHandler(this.gameEnv, this.gameContainer);
+            } else {
+                this._canvasClickHandler.gameEnv = this.gameEnv;
+                this._canvasClickHandler.gameContainer = this.gameContainer;
+            }
             this._canvasClickHandler.bindInteractKeyListeners();
             this.registerInteractionHandler(this._canvasClickHandler);
         }

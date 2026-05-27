@@ -1,8 +1,8 @@
 ---
 layout: post
 codemirror: True
-title: CS111 Notes
-description: JavaScript CSSE notes and project checklist from my personal portfolio work.
+title: Aquatic Game Level Explanation
+description: CSSE topic-by-topic explanation of the Aquatic game level code.
 permalink: /personal-accomplishment-yiming/cs111-notes/
 ---
 
@@ -12,8 +12,26 @@ html {
 }
 </style>
 
-# CS111 Notes
-A short review notebook with simple notes and code examples for common JavaScript topics.
+# Aquatic Game Level Explanation
+This notebook explains the code in Aquatic For Reference.js using CSSE topics like functions, arrays, booleans, conditionals, classes, constructors, methods, strings, data abstraction, math expressions, variables, and iteration.
+
+## Quick Teleport
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 18px 0;">
+  <a href="#functions" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Functions</a>
+  <a href="#arrays" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Arrays</a>
+  <a href="#booleans" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Booleans</a>
+  <a href="#conditionals" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Conditionals</a>
+  <a href="#classes" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Classes</a>
+  <a href="#constructors" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Constructors</a>
+  <a href="#methods" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Methods</a>
+  <a href="#strings" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Strings</a>
+  <a href="#data-abstraction" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Data Abstraction</a>
+  <a href="#mathematical-expressions" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Math</a>
+  <a href="#variables" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Variables</a>
+  <a href="#iteration" style="padding:8px 12px;border-radius:999px;background:#0b3b57;color:#e9fbff;text-decoration:none;font-weight:700;">Iteration</a>
+  <a href="#megalodon-boss-explanation" style="padding:8px 12px;border-radius:999px;background:#105d3a;color:#e9fff4;text-decoration:none;font-weight:700;">Megalodon Boss</a>
+  <a href="#code-breakdown" style="padding:8px 12px;border-radius:999px;background:#105d3a;color:#e9fff4;text-decoration:none;font-weight:700;">Code Breakdown</a>
+</div>
 
 ## Project Checklist
 This table connects each project requirement to the closest matching CS111 topic section below. The links are not all perfect one-to-one lessons, so the evidence section after the table pulls real code from my aquatic game level and engine files to prove the relationship directly.
@@ -487,7 +505,7 @@ class Player {
 }
 
 const playerOne = new Player('Alex', 3);
-console.log(playerOne);
+console.log(`Player: ${playerOne.name}, Lives: ${playerOne.lives}`);
 {% endcapture %}
 
 {% capture source8 %}
@@ -503,7 +521,7 @@ class Player {
 }
 
 const playerOne = new Player('Alex', 3);
-console.log(playerOne);
+console.log(`Player: ${playerOne.name}, Lives: ${playerOne.lives}`);
 ```
 {% endcapture %}
 
@@ -867,3 +885,171 @@ Element-inspection relationship: the aquatic runner includes canvas output, menu
 
 ### Conclusion
 The top table is most accurate when it is read together with this evidence section. The notes introduce the CS111 concepts, and the aquatic game level proves that I used those concepts in a real project through classes, quest logic, input handling, API calls, debugging, and structured game configuration.
+
+<h2 id="megalodon-boss-explanation">Megalodon Boss Explanation</h2>
+The megalodon boss fight uses the same CSSE topics as the rest of the Aquatic level, but in a more combat-focused way.
+
+```javascript
+this.startMegalodonEncounter = async () => {
+  if (this.bossState.active || this.bossState.introPlayed) return;
+
+  this.bossState.introPlayed = true;
+  this.bossState.active = true;
+  this.bossState.hp = this.bossState.maxHp;
+  this.bossState.summonThresholdsTriggered = [];
+
+  const bossData = {
+    id: 'MegalodonBoss',
+    src: this.bossState.megalodonMoveSheet,
+    INIT_POSITION: { x: 120, y: this.gameEnv.innerHeight - 150 },
+    laserAttack: { row: 0, start: 0, columns: 3 },
+    rocketAttack: { row: 1, start: 0, columns: 3 }
+  };
+
+  const boss = new Npc(bossData, this.gameEnv);
+  this.bossState.megalodon = boss;
+  this.gameEnv.gameObjects.push(boss);
+};
+
+const thresholds = [0.75, 0.5, 0.25];
+thresholds.forEach((threshold) => {
+  if (this.bossState.hp <= this.bossState.maxHp * threshold) {
+    summonRushingSharks();
+  }
+});
+```
+
+<h3 id="code-breakdown">Code Breakdown</h3>
+This section shows the boss logic with short explanations and actual code snippets.
+
+#### 1) Start Function + Guard Condition
+```javascript
+this.startMegalodonEncounter = async () => {
+  if (this.bossState.active || this.bossState.introPlayed) return;
+```
+- Function: starts the boss encounter.
+- Condition + booleans: prevents duplicate starts.
+
+#### 2) Boss State Setup
+```javascript
+  this.bossState.introPlayed = true;
+  this.bossState.active = true;
+  this.bossState.hp = this.bossState.maxHp;
+  this.bossState.summonThresholdsTriggered = [];
+```
+- Variables and booleans track fight state.
+- Array stores which summon phases already triggered.
+
+#### 3) Boss Data Object (Data Abstraction)
+```javascript
+  const bossData = {
+    id: 'MegalodonBoss',
+    src: this.bossState.megalodonMoveSheet,
+    INIT_POSITION: { x: 120, y: this.gameEnv.innerHeight - 150 },
+    laserAttack: { row: 0, start: 0, columns: 3 },
+    rocketAttack: { row: 1, start: 0, columns: 3 }
+  };
+```
+- Object groups all boss configuration in one place.
+- Math expression places the boss using screen height.
+
+#### 4) Instantiation + Array Insertion
+```javascript
+  const boss = new Npc(bossData, this.gameEnv);
+  this.bossState.megalodon = boss;
+  this.gameEnv.gameObjects.push(boss);
+};
+```
+- Class + constructor: creates the boss instance.
+- Array operation: adds the boss to active game objects.
+
+#### 5) Iteration + Conditional Summon Logic
+```javascript
+const thresholds = [0.75, 0.5, 0.25];
+thresholds.forEach((threshold) => {
+  if (this.bossState.hp <= this.bossState.maxHp * threshold) {
+    summonRushingSharks();
+  }
+});
+```
+- Iteration checks each phase threshold.
+- Conditional + math triggers summons at health breakpoints.
+
+<h2 id="mermaid-boss-explanation">Mermaid Boss Explanation</h2>
+The Mermaid boss code is a second combat system layered on top of the original boss system. It demonstrates state modeling, function decomposition, object creation, conditional branching, and timed event logic.
+
+```javascript
+this.startMermaidBossEncounter = async () => {
+  const state = this.mermaidBossState;
+  state.active = true;
+  state.combatReady = true;
+  state.hp = state.maxHp;
+
+  state.volleyShotsRemaining = 0;
+  state.nextVolleyReadyAt = Date.now() + 1200;
+  state.nextBombAt = Date.now() + 9500;
+  state.nextSummonAt = Date.now() + 13500;
+
+  setMermaidBossSpriteSheet(mermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 6, columns: 6 });
+};
+
+const spawnMermaidStarGuardians = () => {
+  const guardianData = {
+    id: `MermaidStarGuardian_${Date.now()}`,
+    src: starfishGuardianSpriteSrc,
+    orientation: { rows: 6, columns: 6 },
+    idle: { row: 0, start: 0, columns: 6 },
+    walk: { row: 1, start: 0, columns: 6 },
+    attack: { row: 4, start: 0, columns: 5 },
+    rangedAttack: { row: 5, start: 0, columns: 5 }
+  };
+  const guardian = new Npc(guardianData, this.gameEnv);
+  this.gameEnv.gameObjects.push(guardian);
+};
+```
+
+<h3 id="mermaid-code-breakdown">Mermaid Boss Code Breakdown</h3>
+
+#### 1) Separate State Object (Abstraction)
+```javascript
+const state = this.mermaidBossState;
+state.active = true;
+state.combatReady = true;
+state.hp = state.maxHp;
+```
+- Uses a dedicated state object so Mermaid logic is isolated from Megalodon logic.
+- Boolean flags control whether update functions should run.
+
+#### 2) Timed Combat Scheduling (Algorithms + Math)
+```javascript
+state.nextVolleyReadyAt = Date.now() + 1200;
+state.nextBombAt = Date.now() + 9500;
+state.nextSummonAt = Date.now() + 13500;
+```
+- Converts gameplay pacing into timestamps.
+- Uses arithmetic with `Date.now()` to sequence attacks over time.
+
+#### 3) Sprite-Sheet Configuration (Data Modeling)
+```javascript
+setMermaidBossSpriteSheet(mermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 6, columns: 6 });
+```
+- Encodes sheet metadata explicitly instead of hardcoding in render logic.
+- Shows parameterized function design: source path + pixel dimensions + orientation.
+
+#### 4) Guardian Creation with Class Instantiation
+```javascript
+const guardian = new Npc(guardianData, this.gameEnv);
+this.gameEnv.gameObjects.push(guardian);
+```
+- Constructor call creates a reusable game entity from config data.
+- Array insertion registers it in the engine update/draw loop.
+
+#### 5) Row-Based Animation Mapping
+```javascript
+idle: { row: 0, start: 0, columns: 6 },
+walk: { row: 1, start: 0, columns: 6 },
+attack: { row: 4, start: 0, columns: 5 },
+rangedAttack: { row: 5, start: 0, columns: 5 }
+```
+- Demonstrates table-driven animation design.
+- Different actions can use different frame counts, which prevents row bleed and wrong frame sampling.

@@ -220,18 +220,21 @@ class Character extends GameObject {
         // Calculate the frame dimensions
         const pixels = this.spriteData.pixels || { width: this.spriteSheet.naturalWidth, height: this.spriteSheet.naturalHeight };
         const orientation = this.spriteData.orientation || { rows: 1, columns: 1 };
-        const frameWidth = Math.max(1, Math.round(pixels.width / orientation.columns));
-        const frameHeight = Math.max(1, Math.round(pixels.height / orientation.rows));
+        const columns = Math.max(1, orientation.columns || 1);
+        const rows = Math.max(1, orientation.rows || 1);
+        const srcFrameWidth = Math.max(1, pixels.width / columns);
+        const srcFrameHeight = Math.max(1, pixels.height / rows);
 
         // Calculate the frame position on the sprite sheet
         const directionData = this.spriteData[this.direction] || {};
-        const frameX = ((directionData.start || 0) + (this.frameIndex || 0)) * frameWidth;
-        const frameY = (directionData.row || 0) * frameHeight;
+        const frameX = ((directionData.start || 0) + (this.frameIndex || 0)) * srcFrameWidth;
+        const frameY = (directionData.row || 0) * srcFrameHeight;
 
         // Set the canvas dimensions based on the frame size
         // Set the canvas dimensions based on the frame size (integers)
-        this.canvas.width = frameWidth;
-        this.canvas.height = frameHeight;
+        this.canvas.width = Math.max(1, Math.round(srcFrameWidth));
+        this.canvas.height = Math.max(1, Math.round(srcFrameHeight));
+        this.ctx.imageSmoothingEnabled = false;
 
         // Apply transformations (rotation, mirroring, spinning)
         this.applyTransformations(directionData);
@@ -243,7 +246,7 @@ class Character extends GameObject {
         if (!this.visible) return; // Skip drawing if not visible
         this.ctx.drawImage(
             this.spriteSheet,
-            frameX, frameY, frameWidth, frameHeight, // Source rectangle
+            frameX, frameY, srcFrameWidth, srcFrameHeight, // Source rectangle
             0, 0, this.canvas.width, this.canvas.height // Destination rectangle
         );
     }

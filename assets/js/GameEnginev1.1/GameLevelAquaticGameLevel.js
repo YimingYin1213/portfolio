@@ -102,6 +102,11 @@ class GameLevelAquaticGameLevel {
         const selectedAquaticSprite = aquaticSpriteOptions.find((option) => option.key === localStorage.getItem(aquaticSpriteStorageKey))
             || aquaticSpriteOptions[0];
         const menuMegalodonSpriteSrc = assetPath + '/megalodon.png';
+        const mermaidBossSpriteSrc = assetPath + '/Mermaid Boss.png';
+        const defeatedMermaidBossSpriteSrc = assetPath + '/Defeated Mermaid Boss.png';
+        const mermaidRocketSpriteSrc = assetPath + '/Mermaid Rocket.png';
+        const mermaidBombSpriteSrc = assetPath + '/Bomb Explodes.png';
+        const starfishGuardianSpriteSrc = assetPath + '/Starfish Guardian.png';
 
         const bgData = {
             name: "custom_bg",
@@ -177,6 +182,33 @@ class GameLevelAquaticGameLevel {
                         {
                             text: 'Close',
                             action: () => this.dialogueSystem.closeDialogue()
+                        }
+                    ]);
+                    return;
+                }
+
+                if (q2.megalodonDefeated && !q2.mermaidBossTriggered) {
+                    this.dialogueSystem.showDialogue(
+                        'You can go onto the lands now. But if you stay, something else may awaken in this ocean...',
+                        'Slime',
+                        null
+                    );
+                    clearDialogueActionButtons(this.dialogueSystem);
+                    this.dialogueSystem.addButtons([
+                        {
+                            text: 'Go To Lands',
+                            primary: true,
+                            action: () => {
+                                this.dialogueSystem.closeDialogue();
+                                levelContext.showProceedToLandsWindow?.();
+                            }
+                        },
+                        {
+                            text: 'Stay',
+                            action: async () => {
+                                this.dialogueSystem.closeDialogue();
+                                await levelContext.beginMermaidBossPrelude?.();
+                            }
                         }
                     ]);
                     return;
@@ -383,6 +415,10 @@ class GameLevelAquaticGameLevel {
                 returning: false,
                 completed: false,
                 pendingSlimeCompletion: false,
+                megalodonDefeated: false,
+                mermaidBossIntroStarted: false,
+                mermaidBossTriggered: false,
+                mermaidBossDefeated: false,
                 trashTotal: 12,
                 collected: 0
             }
@@ -419,6 +455,7 @@ class GameLevelAquaticGameLevel {
         this.underwaterMusicSrc = audioAssetPath + '/Underwater Soundtrack.mp3';
         this.bossMusicSrc = audioAssetPath + '/Megalodon Boss Fight.mp3';
         this.bossMusicPhaseTwoSrc = audioAssetPath + '/Megalodon Boss Fight.mp3';
+        this.mermaidBossMusicSrc = audioAssetPath + '/Mermaid Boss Fight.mp3';
         this.storyUiState = {
             hiddenElements: []
         };
@@ -427,6 +464,7 @@ class GameLevelAquaticGameLevel {
             pausedAt: 0,
             resumeUnderwaterTheme: false,
             resumeBossTheme: false,
+            resumeMermaidBossTheme: false,
             underwaterThemeAudio: null
         };
         this.bossState = {
@@ -484,6 +522,51 @@ class GameLevelAquaticGameLevel {
             orbAuras: {},
             orbAnnouncementTimeout: null,
             buffs: createBossOrbBuffState()
+        };
+
+        this.mermaidBossState = {
+            active: false,
+            introPlayed: false,
+            combatReady: false,
+            boss: null,
+            hp: 2800,
+            maxHp: 2800,
+            projectiles: [],
+            enemyProjectiles: [],
+            bombs: [],
+            summons: [],
+            volleyShotsRemaining: 0,
+            nextVolleyShotAt: 0,
+            nextVolleyReadyAt: 0,
+            nextAssaultAt: 0,
+            nextBombAt: 0,
+            nextSummonAt: 0,
+            nextLaserAt: 0,
+            shotIntervalMs: 500,
+            volleyCooldownMs: 5000,
+            volleySize: 10,
+            assaultCooldownMs: 20000,
+            bombCooldownMs: 15000,
+            summonCooldownMs: 45000,
+            laserCooldownMs: 30000,
+            assaultDurationMs: 3000,
+            laserChargeMs: 5000,
+            phaseTwoUnlocked: false,
+            phaseThreeUnlocked: false,
+            phaseFourUnlocked: false,
+            defeated: false,
+            deathCleanupAt: 0,
+            activeAbility: null,
+            abilityEndsAt: 0,
+            abilityCommitted: false,
+            laserChargeStartAt: 0,
+            laserBeam: null,
+            laserTargetX: 0,
+            laserTargetY: 0,
+            rocketSprite: mermaidRocketSpriteSrc,
+            hud: null,
+            themeAudio: null,
+            activeThemeAudio: null
         };
 
         const multiplayerRoom = new URLSearchParams(window.location.search).get('room') || sessionStorage.getItem('aquatic_multiplayer_room') || '';
@@ -1605,6 +1688,14 @@ class GameLevelAquaticGameLevel {
 
             title.textContent = 'Ocean Recovery Tracker';
             progress.textContent = 'Trash Removed: ' + q2.collected + ' / ' + q2.trashTotal;
+            if (q2.megalodonDefeated && !q2.mermaidBossTriggered) {
+                status.textContent = 'Megalodon defeated. Talk to Slime to choose your path.';
+                return;
+            }
+            if (q2.mermaidBossTriggered) {
+                status.textContent = 'A new enemy has appeared...';
+                return;
+            }
             status.textContent = q2.pendingSlimeCompletion
                 ? 'Return to Slime to finish level.'
                 : (q2.inSurface ? 'Quest #2 active above water.' : 'Quest #2 in progress.');
@@ -2093,6 +2184,49 @@ class GameLevelAquaticGameLevel {
                 return btn;
             };
 
+            const jumpToPostMegalodonState = () => {
+                if (this.gameMode !== 'story') {
+                    showTopMenuNotice('Admin Skip is only available in Story mode.');
+                    return;
+                }
+
+                this.cleanupBossEncounter?.();
+                this.playerLock = false;
+
+                questState.firstQuest.accepted = true;
+                questState.firstQuest.started = true;
+                questState.firstQuest.completed = true;
+                questState.firstQuest.collected = questState.firstQuest.starfishTotal;
+
+                const q2 = questState.secondQuest;
+                q2.offered = true;
+                q2.accepted = true;
+                q2.started = true;
+                q2.inSurface = false;
+                q2.returning = false;
+                q2.completed = true;
+                q2.pendingSlimeCompletion = false;
+                q2.megalodonDefeated = true;
+                q2.mermaidBossIntroStarted = false;
+                q2.mermaidBossTriggered = false;
+                q2.mermaidBossDefeated = false;
+                q2.collected = q2.trashTotal;
+
+                hideKirbyAfterQuestTwo?.();
+                updateQuestHud();
+                showTopMenuNotice('Admin Skip applied: jumped to post-Megalodon state.');
+            };
+
+            const adminSkipBtn = createButton('Admin Skip');
+            adminSkipBtn.id = 'aquatic-admin-skip-btn';
+            adminSkipBtn.style.border = '1px solid rgba(255, 183, 104, 0.9)';
+            adminSkipBtn.style.background = 'rgba(54, 30, 8, 0.88)';
+            adminSkipBtn.style.color = '#ffe1bd';
+            adminSkipBtn.onclick = () => jumpToPostMegalodonState();
+            if (!this.adminConsoleUnlocked) {
+                adminSkipBtn.style.display = 'none';
+            }
+
             const toggleLeaderboardBtn = createButton('Toggle Leaderboard');
             toggleLeaderboardBtn.onclick = () => toggleChallengeLeaderboard();
 
@@ -2140,12 +2274,43 @@ class GameLevelAquaticGameLevel {
                 switchStoryBtn.style.opacity = '0.78';
             }
 
+            bar.appendChild(adminSkipBtn);
             bar.appendChild(toggleLeaderboardBtn);
             bar.appendChild(saveScoreBtn);
             bar.appendChild(lobbyBtn);
             bar.appendChild(switchStoryBtn);
             bar.appendChild(switchChallengeBtn);
             appendGameUi(bar);
+        };
+
+        const unlockAdminSkipButton = () => {
+            this.adminConsoleUnlocked = true;
+            const adminSkipBtn = document.getElementById('aquatic-admin-skip-btn');
+            if (adminSkipBtn) adminSkipBtn.style.display = 'inline-block';
+        };
+
+        const installAdminConsoleShortcut = () => {
+            if (this.adminConsoleShortcutInstalled) return;
+            this.adminConsoleShortcutInstalled = true;
+
+            const existingDescriptor = Object.getOwnPropertyDescriptor(window, 'admin');
+            if (!existingDescriptor || existingDescriptor.configurable) {
+                Object.defineProperty(window, 'admin', {
+                    configurable: true,
+                    get: () => {
+                        unlockAdminSkipButton();
+                        showTopMenuNotice?.('Admin unlocked. Use Admin Skip button.');
+                        return 'Aquatic admin unlocked. Click Admin Skip in the top menu.';
+                    }
+                });
+                return;
+            }
+
+            window.aquaticAdmin = () => {
+                unlockAdminSkipButton();
+                showTopMenuNotice?.('Admin unlocked via aquaticAdmin().');
+                return 'Aquatic admin unlocked. Click Admin Skip in the top menu.';
+            };
         };
 
         // Start the next challenge wave by respawning a full starfish set.
@@ -2379,6 +2544,9 @@ class GameLevelAquaticGameLevel {
         // Hide NPC layer during surface quest scene and restore afterward.
         const setWorldNpcVisibility = (visible) => {
             const ids = ['Mermaid', 'Random Slime', 'Shark'];
+            if (questState.secondQuest.mermaidBossTriggered) {
+                ids.push('MermaidBoss');
+            }
             if (!questState.secondQuest.completed) {
                 ids.push('Kirby');
             }
@@ -2587,6 +2755,7 @@ class GameLevelAquaticGameLevel {
         this.startChallengeWave = startChallengeWave;
         this.saveCurrentChallengeScore = saveCurrentChallengeScore;
         this.ensureTopMenuBar = ensureTopMenuBar;
+        this.installAdminConsoleShortcut = installAdminConsoleShortcut;
         this.toggleChallengeLeaderboard = toggleChallengeLeaderboard;
         this.switchToChallengeMode = switchToChallengeMode;
         this.clearSurfaceTrash = clearSurfaceTrash;
@@ -2602,6 +2771,11 @@ class GameLevelAquaticGameLevel {
                 this.bossState?.combatReady ||
                 this.bossState?.introPlayed
             );
+            const canRetryMermaidBossFight = !!(
+                this.mermaidBossState?.active ||
+                this.mermaidBossState?.combatReady ||
+                this.mermaidBossState?.introPlayed
+            );
 
             // Freeze boss encounter immediately so no abilities continue after death.
             if (this.bossState) {
@@ -2614,6 +2788,17 @@ class GameLevelAquaticGameLevel {
                 this.bossState.laserBeam = null;
                 this.bossState.enemyProjectiles?.forEach((p) => p?.element?.remove());
                 this.bossState.enemyProjectiles = [];
+            }
+            if (this.mermaidBossState) {
+                this.mermaidBossState.combatReady = false;
+                this.mermaidBossState.activeAbility = null;
+                this.mermaidBossState.abilityCommitted = false;
+                if (this.mermaidBossState.laserBeam?.element) {
+                    this.mermaidBossState.laserBeam.element.remove();
+                }
+                this.mermaidBossState.laserBeam = null;
+                this.mermaidBossState.enemyProjectiles?.forEach((p) => p?.element?.remove());
+                this.mermaidBossState.enemyProjectiles = [];
             }
             this.playerLock = true;
 
@@ -2657,7 +2842,7 @@ class GameLevelAquaticGameLevel {
             const body = document.createElement('div');
             body.textContent = this.gameMode === 'challenge'
                 ? `You've been eaten by shark. Final score: ${challengeState.score}.`
-                : (canRetryBossFight
+                : ((canRetryBossFight || canRetryMermaidBossFight)
                     ? "You've been eaten by shark. You can retry the boss fight."
                     : "You've been eaten by shark. You can replay.");
             Object.assign(body.style, {
@@ -2685,7 +2870,7 @@ class GameLevelAquaticGameLevel {
             const restart = document.createElement('button');
             restart.textContent = this.gameMode === 'challenge'
                 ? 'Replay Challenge'
-                : (canRetryBossFight ? 'Retry Boss Fight' : 'Replay');
+                : (canRetryMermaidBossFight ? 'Retry Mermaid Boss Fight' : (canRetryBossFight ? 'Retry Boss Fight' : 'Replay'));
             Object.assign(restart.style, {
                 width: '100%',
                 padding: '12px 16px',
@@ -2706,7 +2891,9 @@ class GameLevelAquaticGameLevel {
                 }
 
                 overlay.remove();
-                if (canRetryBossFight) {
+                if (canRetryMermaidBossFight) {
+                    this.retryMermaidBossEncounter?.();
+                } else if (canRetryBossFight) {
                     this.retryBossEncounter?.();
                 } else {
                     window.location.reload();
@@ -2740,7 +2927,8 @@ class GameLevelAquaticGameLevel {
         };
 
         const ensureBossHud = () => {
-            if (!this.bossState.active || this.bossState.hud) return;
+            const mermaidActive = !!this.mermaidBossState?.active;
+            if ((!this.bossState.active && !mermaidActive) || this.bossState.hud) return;
 
             const hud = document.createElement('div');
             hud.id = 'aquatic-boss-hud';
@@ -2760,6 +2948,7 @@ class GameLevelAquaticGameLevel {
             });
 
             const title = document.createElement('div');
+            title.id = 'aquatic-boss-hud-title';
             title.textContent = 'MEGALODON';
             title.style.marginBottom = '6px';
 
@@ -2843,8 +3032,16 @@ class GameLevelAquaticGameLevel {
             if (!this.bossState.hud) return;
             const fill = document.getElementById('aquatic-boss-hp-fill');
             if (!fill) return;
-            const ratio = Math.max(0, Math.min(1, this.bossState.hp / this.bossState.maxHp));
+            const mermaidActive = !!this.mermaidBossState?.active;
+            const currentBossHp = mermaidActive ? this.mermaidBossState.hp : this.bossState.hp;
+            const currentBossMaxHp = mermaidActive ? this.mermaidBossState.maxHp : this.bossState.maxHp;
+            const ratio = Math.max(0, Math.min(1, currentBossHp / Math.max(1, currentBossMaxHp)));
             fill.style.width = `${Math.round(ratio * 100)}%`;
+
+            const title = document.getElementById('aquatic-boss-hud-title');
+            if (title) {
+                title.textContent = mermaidActive ? 'MERMAID BOSS' : 'MEGALODON';
+            }
 
             const playerFill = document.getElementById('aquatic-player-hp-fill');
             if (playerFill) {
@@ -2893,6 +3090,1173 @@ class GameLevelAquaticGameLevel {
             await new Promise((resolve) => setTimeout(resolve, durationMs));
             box.remove();
         };
+
+        const showProceedToLandsWindow = () => {
+            const existing = document.getElementById('aquatic-boss-victory');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'aquatic-boss-victory';
+            Object.assign(overlay.style, {
+                position: 'fixed',
+                inset: '0',
+                zIndex: '10080',
+                background: 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            });
+
+            const panel = document.createElement('div');
+            Object.assign(panel.style, {
+                width: 'min(520px, 92vw)',
+                borderRadius: '16px',
+                padding: '22px',
+                background: 'linear-gradient(180deg, rgba(8, 46, 74, 0.95), rgba(4, 18, 36, 0.95))',
+                border: '2px solid rgba(110, 206, 255, 0.8)',
+                boxShadow: '0 0 30px rgba(56, 183, 255, 0.35)',
+                color: '#e6fbff',
+                fontFamily: "'Press Start 2P', cursive, monospace",
+                textAlign: 'center'
+            });
+
+            const title = document.createElement('div');
+            title.textContent = 'PASSAGE TO THE LANDS';
+            Object.assign(title.style, {
+                fontSize: '16px',
+                marginBottom: '14px',
+                color: '#7de2ff',
+                textShadow: '0 0 12px rgba(125, 226, 255, 0.7)'
+            });
+
+            const body = document.createElement('div');
+            body.textContent = 'The ocean is safe. You can now continue to the lands.';
+            Object.assign(body.style, {
+                fontSize: '11px',
+                lineHeight: '1.7',
+                marginBottom: '18px'
+            });
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next Level';
+            Object.assign(nextButton.style, {
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: 'none',
+                fontFamily: "'Press Start 2P', cursive, monospace",
+                fontSize: '12px',
+                background: 'linear-gradient(90deg, #35b9ff, #5cf0ff)',
+                color: '#032030',
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(53, 185, 255, 0.4)'
+            });
+
+            nextButton.onclick = () => {
+                const gameControl = this.gameEnv?.gameControl;
+                const game = this.gameEnv?.game;
+                if (gameControl?.currentLevel) {
+                    gameControl.currentLevel.levelCompleted = true;
+                    gameControl.currentLevel.continue = false;
+                }
+
+                if (typeof gameControl?.nextLevel === 'function') {
+                    gameControl.nextLevel();
+                } else if (typeof game?.loadNextLevel === 'function') {
+                    game.loadNextLevel();
+                } else if (typeof gameControl?.goToNextLevel === 'function') {
+                    gameControl.goToNextLevel();
+                }
+
+                overlay.remove();
+            };
+
+            panel.appendChild(title);
+            panel.appendChild(body);
+            panel.appendChild(nextButton);
+            overlay.appendChild(panel);
+            document.body.appendChild(overlay);
+        };
+
+        const getNpcById = (id) => this.gameEnv?.gameObjects?.find(
+            (obj) => obj?.spriteData?.id === id
+        );
+
+        const moveNpcTo = (npc, targetX, targetY, durationMs = 1800) => {
+            if (!npc?.position) return Promise.resolve();
+            const startX = npc.position.x;
+            const startY = npc.position.y;
+            const start = performance.now();
+
+            return new Promise((resolve) => {
+                const step = (now) => {
+                    const t = Math.min(1, (now - start) / durationMs);
+                    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                    npc.position.x = startX + (targetX - startX) * eased;
+                    npc.position.y = startY + (targetY - startY) * eased;
+                    if (t >= 1) {
+                        resolve();
+                        return;
+                    }
+                    requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            });
+        };
+
+        const beginMermaidBossPrelude = async () => {
+            const q2 = questState.secondQuest;
+            if (!q2.megalodonDefeated || q2.mermaidBossTriggered || q2.mermaidBossIntroStarted) return;
+            q2.mermaidBossIntroStarted = true;
+            q2.mermaidBossTriggered = true;
+            updateQuestHud();
+
+            this.playerLock = true;
+
+            const fog = document.createElement('div');
+            fog.id = 'aquatic-mermaid-fog';
+            Object.assign(fog.style, {
+                position: 'fixed',
+                inset: '0',
+                zIndex: '10088',
+                pointerEvents: 'none',
+                background: 'rgba(0, 0, 0, 0)',
+                backdropFilter: 'blur(0px)',
+                transition: 'background 700ms ease, backdrop-filter 700ms ease'
+            });
+
+            const fogText = document.createElement('div');
+            fogText.textContent = 'hours later';
+            Object.assign(fogText.style, {
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                color: '#f1f1f1',
+                fontFamily: "'Press Start 2P', cursive, monospace",
+                fontSize: '24px',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                opacity: '0',
+                textShadow: '0 0 16px rgba(255,255,255,0.35)',
+                transition: 'opacity 350ms ease'
+            });
+            fog.appendChild(fogText);
+            document.body.appendChild(fog);
+
+            requestAnimationFrame(() => {
+                fog.style.background = 'rgba(0, 0, 0, 0.92)';
+                fog.style.backdropFilter = 'blur(3px)';
+            });
+
+            await new Promise((resolve) => setTimeout(resolve, 900));
+            fogText.style.opacity = '1';
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+
+            fogText.style.opacity = '0';
+            fog.style.background = 'rgba(0, 0, 0, 0)';
+            fog.style.backdropFilter = 'blur(0px)';
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            fog.remove();
+
+            const slime = getNpcById('Random Slime');
+            const kirby = getNpcById('Kirby');
+            const mermaid = getNpcById('Mermaid');
+            const mermaidBoss = getNpcById('MermaidBoss');
+            const player = getPlayer();
+
+            if (kirby?.canvas) kirby.canvas.style.display = 'none';
+            if (kirby?.position) {
+                kirby.position.x = -10000;
+                kirby.position.y = -10000;
+            }
+            if (mermaid?.canvas) mermaid.canvas.style.display = 'none';
+            if (mermaid?.position) {
+                mermaid.position.x = -10000;
+                mermaid.position.y = -10000;
+            }
+            if (slime?.canvas) slime.canvas.style.display = 'block';
+            if (mermaidBoss?.canvas) mermaidBoss.canvas.style.display = 'block';
+
+            if (player?.position && mermaidBoss?.position) {
+                const px = player.position.x + player.width * 0.5;
+                const py = player.position.y + player.height * 0.5;
+                const mx = mermaidBoss.position.x + mermaidBoss.width * 0.5;
+                const my = mermaidBoss.position.y + mermaidBoss.height * 0.5;
+                player.direction = getDirectionToward(px, py, mx, my);
+            }
+
+            if (slime?.position) {
+                slime.direction = 'right';
+                await moveNpcTo(
+                    slime,
+                    this.gameEnv.innerWidth + Math.max(100, slime.width || 100),
+                    slime.position.y,
+                    2200
+                );
+                if (slime.canvas) slime.canvas.style.display = 'none';
+            }
+
+            if (mermaidBoss?.position) {
+                const spawnY = player
+                    ? Math.max(60, Math.min(this.gameEnv.innerHeight - (mermaidBoss.height || 120) - 40, player.position.y - 20))
+                    : this.gameEnv.innerHeight * 0.52;
+                mermaidBoss.position.x = -Math.max((mermaidBoss.width || 120) + 90, 180);
+                mermaidBoss.position.y = spawnY;
+                mermaidBoss.direction = 'down';
+
+                const targetX = player
+                    ? Math.max(22, player.position.x - Math.max((mermaidBoss.width || 120) + 30, 120))
+                    : this.gameEnv.innerWidth * 0.18;
+                await moveNpcTo(mermaidBoss, targetX, spawnY, 2400);
+
+                if (player?.position) {
+                    const px = player.position.x + player.width * 0.5;
+                    const py = player.position.y + player.height * 0.5;
+                    const mx = mermaidBoss.position.x + mermaidBoss.width * 0.5;
+                    const my = mermaidBoss.position.y + mermaidBoss.height * 0.5;
+                    player.direction = getDirectionToward(px, py, mx, my);
+                }
+            }
+
+            await showBottomStoryDialogue('Mermaid Boss', "*Angry*, WHERE'S MY PET MEGALODON!!!", 2800);
+            await showBottomStoryDialogue('Player', '*Stand still*', 1800);
+
+            if (mermaidBoss?.position && player?.position) {
+                const closerTargetX = Math.max(16, player.position.x - Math.max((mermaidBoss.width || 120) + 8, 72));
+                const closerTargetY = Math.max(36, Math.min(this.gameEnv.innerHeight - (mermaidBoss.height || 120) - 24, player.position.y - 8));
+                mermaidBoss.direction = 'down';
+                await moveNpcTo(mermaidBoss, closerTargetX, closerTargetY, 1200);
+
+                const px = player.position.x + player.width * 0.5;
+                const py = player.position.y + player.height * 0.5;
+                const mx = mermaidBoss.position.x + mermaidBoss.width * 0.5;
+                const my = mermaidBoss.position.y + mermaidBoss.height * 0.5;
+                player.direction = getDirectionToward(px, py, mx, my);
+            }
+
+            await showBottomStoryDialogue('Mermaid Boss', '*moves closer to the player*, did you see my pet?', 2800);
+            await showBottomStoryDialogue('Mermaid Boss', '*smells*, I smell him! The ashes and smoke! YOU KILLED MY PET!!!.', 3300);
+            await showBottomStoryDialogue('Player', 'You meant that mechanical shark?', 2600);
+            await showBottomStoryDialogue('Mermaid Boss', 'I will let you suffer...', 2600);
+
+            if (mermaidBoss?.position) {
+                const centerX = Math.max(32, this.gameEnv.innerWidth * 0.5 - (mermaidBoss.width || 120) * 0.5);
+                const centerY = Math.max(60, Math.min(this.gameEnv.innerHeight - (mermaidBoss.height || 120) - 40, this.gameEnv.innerHeight * 0.46));
+                mermaidBoss.direction = 'down';
+                await moveNpcTo(mermaidBoss, centerX, centerY, 1200);
+            }
+
+            this.playerLock = false;
+            if (typeof this.startMermaidBossEncounter === 'function') {
+                await this.startMermaidBossEncounter();
+            }
+        };
+
+        this.showProceedToLandsWindow = showProceedToLandsWindow;
+        this.beginMermaidBossPrelude = beginMermaidBossPrelude;
+
+        const getMermaidBossEntity = () => {
+            if (this.mermaidBossState?.boss) return this.mermaidBossState.boss;
+            const boss = getNpcById('MermaidBoss');
+            if (boss && this.mermaidBossState) {
+                this.mermaidBossState.boss = boss;
+            }
+            return boss;
+        };
+
+        const setMermaidBossSpriteSheet = (src, pixels, orientation = null) => {
+            const boss = getMermaidBossEntity();
+            if (!boss?.spriteSheet) return;
+
+            const sameSource = boss.spriteData?.src === src;
+            const samePixels =
+                boss.spriteData?.pixels?.width === pixels.width &&
+                boss.spriteData?.pixels?.height === pixels.height;
+
+            if (!samePixels) {
+                boss.spriteData.pixels = { ...pixels };
+                boss.resize();
+            }
+
+            if (orientation) {
+                boss.spriteData.orientation = { ...orientation };
+            }
+
+            if (!sameSource) {
+                boss.spriteData.src = src;
+                boss.frameIndex = 0;
+                boss.frameCounter = 0;
+                boss.spriteSheet.src = src;
+            }
+        };
+
+        const startMermaidBossAbility = (abilityName, durationMs) => {
+            const state = this.mermaidBossState;
+            state.activeAbility = abilityName;
+            state.abilityEndsAt = Date.now() + durationMs;
+            state.abilityCommitted = false;
+            const boss = getMermaidBossEntity();
+            if (!boss) return;
+
+            if (abilityName === 'assault') {
+                boss.direction = 'assault';
+                state.nextAssaultAt = Date.now() + state.assaultCooldownMs;
+            } else if (abilityName === 'bombs') {
+                boss.direction = 'bombs';
+                state.nextBombAt = Date.now() + state.bombCooldownMs;
+            } else if (abilityName === 'summon') {
+                boss.direction = 'bombs';
+                state.nextSummonAt = Date.now() + state.summonCooldownMs;
+            } else if (abilityName === 'laser') {
+                boss.direction = 'laser';
+                state.nextLaserAt = Date.now() + state.laserCooldownMs;
+                state.laserChargeStartAt = Date.now();
+                state.laserBeam = null;
+            }
+
+            boss.frameIndex = 0;
+            boss.frameCounter = 0;
+        };
+
+        const showMermaidBossDefeat = async () => {
+            const state = this.mermaidBossState;
+            if (!state?.boss || state.defeated) return;
+
+            state.defeated = true;
+            state.active = false;
+            state.combatReady = false;
+            this.bossState.combatReady = false;
+            state.activeAbility = null;
+            state.abilityCommitted = false;
+            state.deathCleanupAt = Date.now() + 4200;
+            this.playerLock = false;
+            stopBossTheme();
+            stopMermaidBossTheme();
+            stopUnderwaterTheme();
+            if (state.laserBeam?.element) state.laserBeam.element.remove();
+            state.laserBeam = null;
+
+            const boss = state.boss;
+            setMermaidBossSpriteSheet(defeatedMermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 4, columns: 6 });
+            boss.direction = 'defeated';
+            boss.frameIndex = 0;
+            boss.frameCounter = 0;
+            if (boss.canvas) {
+                boss.canvas.style.filter = 'brightness(1.08) saturate(1.08)';
+            }
+        };
+
+        const spawnMermaidBombExplosion = (x, y, scale = 1) => {
+            const frameSize = Math.round(112 * scale);
+            const explosion = document.createElement('div');
+            Object.assign(explosion.style, {
+                position: 'absolute',
+                left: `${x}px`,
+                top: `${getBossOverlayTopOffset() + y}px`,
+                width: `${frameSize}px`,
+                height: `${frameSize}px`,
+                pointerEvents: 'none',
+                zIndex: '10069',
+                imageRendering: 'pixelated',
+                backgroundImage: `url(${mermaidBombSpriteSrc})`,
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: `${frameSize * 4}px ${frameSize * 6}px`,
+                transform: 'translate(-50%, -50%) scale(0.72)',
+                opacity: '1',
+                filter: 'drop-shadow(0 0 16px rgba(255, 160, 62, 0.45))'
+            });
+            appendBossOverlay(explosion);
+
+            const totalFrames = 12;
+            let frame = 0;
+            const explode = () => {
+                if (frame >= totalFrames) {
+                    explosion.remove();
+                    return;
+                }
+
+                const phaseRow = frame < 6 ? Math.min(2, Math.floor(frame / 2)) : 3 + Math.min(2, Math.floor((frame - 6) / 2));
+                const phaseColumn = frame % 4;
+                explosion.style.backgroundPosition = `-${phaseColumn * frameSize}px -${phaseRow * frameSize}px`;
+                explosion.style.transform = `translate(-50%, -50%) scale(${0.72 + frame * 0.06})`;
+                explosion.style.opacity = `${Math.max(0, 1 - frame * 0.085)}`;
+                frame += 1;
+                setTimeout(explode, 90);
+            };
+            explode();
+        };
+
+        const spawnMermaidBombs = () => {
+            const state = this.mermaidBossState;
+            const player = getPlayer();
+            if (!state?.boss || !player) return;
+
+            const lowHealth = state.hp <= state.maxHp * 0.15;
+            const bombCount = lowHealth ? 2 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 3);
+            const baseSize = lowHealth ? 126 : 104;
+            const startY = Math.max(40, state.boss.position.y + state.boss.height * 0.35);
+
+            for (let i = 0; i < bombCount; i += 1) {
+                const bomb = document.createElement('div');
+                const x = Math.max(50, Math.min(this.gameEnv.innerWidth - 50, Math.random() * this.gameEnv.innerWidth));
+                const y = Math.max(10, startY - (i * 30));
+                const fallSpeed = 2.4 + Math.random() * 0.8;
+                const sidePush = (Math.random() - 0.5) * 0.9;
+                const size = baseSize * (lowHealth ? 1.18 : 1);
+
+                Object.assign(bomb.style, {
+                    position: 'absolute',
+                    left: `${x}px`,
+                    top: `${getBossOverlayTopOffset() + y}px`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    pointerEvents: 'none',
+                    zIndex: '10068',
+                    imageRendering: 'pixelated',
+                    backgroundImage: `url(${mermaidBombSpriteSrc})`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '400% 600%',
+                    transform: 'translate(-50%, -50%)',
+                    filter: 'drop-shadow(0 0 12px rgba(255, 176, 81, 0.35))'
+                });
+                appendBossOverlay(bomb);
+
+                state.bombs.push({
+                    element: bomb,
+                    x,
+                    y,
+                    vx: sidePush,
+                    vy: fallSpeed,
+                    age: 0,
+                    phase: 'drop',
+                    explodeStartedAt: 0,
+                    explodeDelayMs: 2000,
+                    size,
+                    lowHealth
+                });
+            }
+        };
+
+        const spawnMermaidStarGuardians = () => {
+            const state = this.mermaidBossState;
+            const player = getPlayer();
+            if (!state?.boss || !player) return;
+
+            const centerX = player.position.x + player.width * 0.5;
+            const centerY = player.position.y + player.height * 0.5;
+            const minSpawnDistance = 280;
+            const maxSpawnDistance = Math.max(minSpawnDistance + 40, Math.min(this.gameEnv.innerWidth, this.gameEnv.innerHeight) * 0.46);
+            const marginX = 110;
+            const marginY = 90;
+
+            const getSpawnPointAwayFromPlayer = (occupied = []) => {
+                for (let attempt = 0; attempt < 36; attempt += 1) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = minSpawnDistance + Math.random() * (maxSpawnDistance - minSpawnDistance);
+                    const x = Math.max(marginX, Math.min(this.gameEnv.innerWidth - marginX, centerX + Math.cos(angle) * radius));
+                    const y = Math.max(marginY, Math.min(this.gameEnv.innerHeight - marginY, centerY + Math.sin(angle) * radius));
+                    const playerDistance = Math.hypot(x - centerX, y - centerY);
+                    const tooCloseToOther = occupied.some((point) => Math.hypot(point.x - x, point.y - y) < 170);
+                    if (playerDistance >= minSpawnDistance && !tooCloseToOther) {
+                        return { x, y };
+                    }
+                }
+
+                const fallback = [
+                    { x: marginX, y: marginY },
+                    { x: this.gameEnv.innerWidth - marginX, y: marginY },
+                    { x: marginX, y: this.gameEnv.innerHeight - marginY },
+                    { x: this.gameEnv.innerWidth - marginX, y: this.gameEnv.innerHeight - marginY }
+                ];
+                fallback.sort((a, b) => Math.hypot(b.x - centerX, b.y - centerY) - Math.hypot(a.x - centerX, a.y - centerY));
+                return fallback[0];
+            };
+
+            const spawnPoints = [];
+            spawnPoints.push(getSpawnPointAwayFromPlayer(spawnPoints));
+            spawnPoints.push(getSpawnPointAwayFromPlayer(spawnPoints));
+
+            spawnPoints.forEach((spawnPoint, index) => {
+                const guardianData = {
+                    id: `MermaidStarGuardian_${Date.now()}_${index}`,
+                    greeting: false,
+                    src: starfishGuardianSpriteSrc,
+                    SCALE_FACTOR: 6.8,
+                    STEP_FACTOR: 0,
+                    ANIMATION_RATE: 11,
+                    INIT_POSITION: spawnPoint,
+                    pixels: { height: 948, width: 948 },
+                    orientation: { rows: 6, columns: 6 },
+                    idle: { row: 0, start: 0, columns: 6 },
+                    walk: { row: 1, start: 0, columns: 6 },
+                    sprint: { row: 2, start: 0, columns: 6 },
+                    sprintAlt: { row: 3, start: 0, columns: 6 },
+                    attack: { row: 4, start: 0, columns: 5 },
+                    rangedAttack: { row: 5, start: 0, columns: 5 },
+                    down: { row: 0, start: 0, columns: 6 },
+                    right: { row: 1, start: 0, columns: 6, mirror: true },
+                    left: { row: 1, start: 0, columns: 6 },
+                    up: { row: 2, start: 0, columns: 6 },
+                    hitbox: { widthPercentage: 0.18, heightPercentage: 0.22 },
+                    reaction: function() {}
+                };
+
+                const guardian = new Npc(guardianData, this.gameEnv);
+                this.gameEnv.gameObjects.push(guardian);
+                state.summons.push({
+                    obj: guardian,
+                    kind: 'mermaidGuardian',
+                    hp: 240,
+                    speed: 1.75 + Math.random() * 0.35,
+                    damage: 20,
+                    contactRange: 62,
+                    contactCooldownMs: 850,
+                    lastHitAt: 0,
+                    attackWindowUntil: 0
+                });
+            });
+        };
+
+        const launchMermaidLaser = () => {
+            const state = this.mermaidBossState;
+            const boss = state?.boss;
+            const player = getPlayer();
+            if (!state?.active || !boss || !player) return;
+
+            const playerX = player.position.x + player.width * 0.5;
+            const playerY = player.position.y + player.height * 0.5;
+            const bossX = boss.position.x + boss.width * 0.5;
+            const bossY = boss.position.y + boss.height * 0.5;
+            const baseAngle = Math.atan2(playerY - bossY, playerX - bossX);
+            const missOffset = (Math.random() < 0.7 ? -1 : 1) * (120 + Math.random() * 160);
+            const missAngle = baseAngle + (Math.random() < 0.5 ? 0.28 : -0.28);
+            const targetX = playerX + Math.cos(missAngle + 1.2) * missOffset;
+            const targetY = playerY + Math.sin(missAngle - 1.2) * missOffset;
+
+            if (state.laserBeam?.element) state.laserBeam.element.remove();
+            const beam = document.createElement('div');
+            Object.assign(beam.style, {
+                position: 'absolute',
+                left: `${bossX}px`,
+                top: `${getBossOverlayTopOffset() + bossY}px`,
+                width: '0px',
+                height: '14px',
+                borderRadius: '12px',
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,120,225,0.72) 22%, rgba(255,71,191,0.95) 48%, rgba(255,184,252,0.9) 72%, rgba(255,255,255,0.12))',
+                boxShadow: '0 0 22px rgba(255, 83, 222, 0.96), 0 0 38px rgba(255, 120, 230, 0.82)',
+                pointerEvents: 'none',
+                zIndex: '10071',
+                transformOrigin: 'left center',
+                opacity: '0.42'
+            });
+            appendBossOverlay(beam);
+
+            const ang = Math.atan2(targetY - bossY, targetX - bossX);
+            const length = Math.min(this.gameEnv.innerWidth, 760);
+            const endX = bossX + Math.cos(ang) * length;
+            const endY = bossY + Math.sin(ang) * length;
+            state.laserBeam = {
+                x1: bossX,
+                y1: bossY,
+                x2: endX,
+                y2: endY,
+                until: Date.now() + 1200,
+                chargeUntil: 0,
+                element: beam,
+                lowAccuracyTarget: { x: targetX, y: targetY }
+            };
+        };
+
+        const applyMermaidBossDamage = (damage, hitX, hitY) => {
+            const state = this.mermaidBossState;
+            if (!state?.active) return;
+
+            state.hp = Math.max(0, state.hp - damage);
+            spawnHitEffect(hitX, hitY, '#ffcf8a');
+            spawnPixelExplosion(hitX, hitY, '#fff7aa', '#ff9a46', '#ff5f31');
+
+            if (state.boss?.canvas) {
+                state.boss.canvas.style.filter = 'brightness(1.22) saturate(1.1)';
+                setTimeout(() => {
+                    if (state.boss?.canvas) state.boss.canvas.style.filter = '';
+                }, 120);
+            }
+
+            if (state.hp <= 0) {
+                showMermaidBossDefeat();
+            }
+        };
+
+        const commitMermaidRockets = () => {
+            const state = this.mermaidBossState;
+            const boss = state?.boss;
+            const player = getPlayer();
+            if (!state?.active || !state.combatReady || !boss || !player) return;
+
+            const playerX = player.position.x + player.width * 0.5;
+            const playerY = player.position.y + player.height * 0.5;
+            const bossX = boss.position.x + boss.width * 0.5;
+            const bossY = boss.position.y + boss.height * 0.5;
+            const angleToPlayer = Math.atan2(playerY - bossY, playerX - bossX);
+
+            const rocket = document.createElement('div');
+            Object.assign(rocket.style, {
+                position: 'absolute',
+                width: '104px',
+                height: '34px',
+                borderRadius: '6px',
+                background: 'transparent',
+                pointerEvents: 'none',
+                zIndex: '10062',
+                transformOrigin: 'left center'
+            });
+            rocket.style.backgroundImage = `url("${state.rocketSprite}")`;
+            rocket.style.backgroundSize = 'contain';
+            rocket.style.backgroundRepeat = 'no-repeat';
+            rocket.style.backgroundPosition = 'center';
+            appendBossOverlay(rocket);
+
+            const flame = document.createElement('div');
+            Object.assign(flame.style, {
+                position: 'absolute',
+                left: '-20px',
+                top: '50%',
+                width: '34px',
+                height: '18px',
+                borderRadius: '10px 0 0 10px',
+                background: 'linear-gradient(90deg, rgba(255,245,182,0.98) 0%, rgba(255,194,92,0.95) 40%, rgba(255,116,52,0.92) 74%, rgba(255,84,28,0) 100%)',
+                transform: 'translate(-10%, -50%) skewX(-12deg)',
+                transformOrigin: 'right center',
+                filter: 'drop-shadow(0 0 8px rgba(255,172,72,0.85))',
+                pointerEvents: 'none',
+                opacity: '0.95'
+            });
+            rocket.appendChild(flame);
+
+            const speed = 5.3;
+            const vx = Math.cos(angleToPlayer) * speed;
+            const vy = Math.sin(angleToPlayer) * speed;
+            state.enemyProjectiles.push({
+                type: 'rocket',
+                owner: 'mermaid',
+                x: bossX,
+                y: bossY,
+                vx,
+                vy,
+                speed,
+                homing: 0,
+                angleOffset: 0,
+                life: 0,
+                damageRange: 30,
+                element: rocket,
+                flameElement: flame,
+                flamePhase: Math.random() * Math.PI * 2
+            });
+        };
+
+        const updateMermaidBossCombat = () => {
+            const state = this.mermaidBossState;
+            const boss = state?.boss;
+            const player = getPlayer();
+            if (!state || !state.active || !state.combatReady || !boss || !player) return;
+
+            const now = Date.now();
+            const top = getBossOverlayTopOffset();
+            const px = player.position.x + player.width * 0.5;
+            const py = player.position.y + player.height * 0.5;
+            const bx = boss.position.x + boss.width * 0.5;
+            const by = boss.position.y + boss.height * 0.5;
+
+            if (state.defeated) {
+                if (state.deathCleanupAt && now >= state.deathCleanupAt) {
+                    const q2 = questState.secondQuest;
+                    q2.mermaidBossDefeated = true;
+                    updateQuestHud();
+                    state.bombs.forEach((bomb) => bomb?.element?.remove());
+                    state.summons.forEach((summon) => summon?.obj?.destroy?.());
+                    state.projectiles.forEach((projectile) => projectile?.element?.remove());
+                    state.enemyProjectiles.forEach((projectile) => projectile?.element?.remove());
+                    if (state.laserBeam?.element) state.laserBeam.element.remove();
+                    if (boss?.destroy) boss.destroy();
+                    state.boss = null;
+                    this.cleanupBossEncounter?.();
+                }
+                return;
+            }
+
+            state.phaseTwoUnlocked = state.hp <= state.maxHp * 0.5;
+            state.phaseThreeUnlocked = state.hp <= state.maxHp * 0.15;
+            state.phaseFourUnlocked = state.hp <= state.maxHp * 0.1;
+            state.assaultCooldownMs = state.phaseThreeUnlocked ? 15000 : 20000;
+            state.summonCooldownMs = state.phaseFourUnlocked ? 25000 : 45000;
+
+            if (!state.nextVolleyReadyAt) state.nextVolleyReadyAt = now + 1100;
+            if (!state.nextBombAt) state.nextBombAt = now + 8000;
+            if (!state.nextSummonAt) state.nextSummonAt = now + 12000;
+            if (!state.nextAssaultAt) state.nextAssaultAt = now + 5000;
+            if (!state.nextLaserAt) state.nextLaserAt = now + 16000;
+
+            if (state.volleyShotsRemaining <= 0 && now >= state.nextVolleyReadyAt) {
+                state.volleyShotsRemaining = state.volleySize;
+                state.nextVolleyShotAt = now;
+            }
+
+            if (state.volleyShotsRemaining > 0 && now >= state.nextVolleyShotAt) {
+                commitMermaidRockets();
+                state.volleyShotsRemaining -= 1;
+                state.nextVolleyShotAt = now + state.shotIntervalMs;
+
+                if (state.volleyShotsRemaining <= 0) {
+                    state.nextVolleyReadyAt = now + state.volleyCooldownMs;
+                }
+            }
+
+            const playerX = px;
+            const playerY = py;
+            const toPlayerX = playerX - bx;
+            const toPlayerY = playerY - by;
+            const toPlayerMag = Math.max(1, Math.hypot(toPlayerX, toPlayerY));
+            const normalizedX = toPlayerX / toPlayerMag;
+            const normalizedY = toPlayerY / toPlayerMag;
+            const orbitX = -normalizedY;
+            const orbitY = normalizedX;
+
+            const updateRocketList = (projectiles, targetType) => {
+                return projectiles.filter((projectile) => {
+                    projectile.life += 1;
+
+                    if (projectile.type === 'rocket' && projectile.homing > 0) {
+                        const tx = targetType === 'boss' ? bx - projectile.x : px - projectile.x;
+                        const ty = targetType === 'boss' ? by - projectile.y : py - projectile.y;
+                        const tMag = Math.max(1, Math.hypot(tx, ty));
+                        const desiredVX = (tx / tMag) * projectile.speed;
+                        const desiredVY = (ty / tMag) * projectile.speed;
+                        projectile.vx += (desiredVX - projectile.vx) * projectile.homing;
+                        projectile.vy += (desiredVY - projectile.vy) * projectile.homing;
+                    }
+
+                    projectile.x += projectile.vx;
+                    projectile.y += projectile.vy;
+
+                    if (projectile.element) {
+                        projectile.element.style.left = `${projectile.x}px`;
+                        projectile.element.style.top = `${top + projectile.y}px`;
+                        projectile.element.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(projectile.vy, projectile.vx) + (projectile.angleOffset || 0)}rad)`;
+                    }
+                    if (projectile.flameElement) {
+                        const flicker = 0.88 + Math.sin(projectile.life * 0.72 + (projectile.flamePhase || 0)) * 0.16;
+                        projectile.flameElement.style.width = `${24 * flicker}px`;
+                        projectile.flameElement.style.opacity = `${0.72 + flicker * 0.18}`;
+                    }
+
+                    if (targetType === 'boss') {
+                        const distToBoss = Math.hypot(bx - projectile.x, by - projectile.y);
+                        if (distToBoss < 88) {
+                            if (projectile.element) projectile.element.remove();
+                            spawnPixelExplosion(projectile.x, projectile.y, '#fff7aa', '#ff9a46', '#ff5f31');
+                            applyMermaidBossDamage(24, projectile.x, projectile.y);
+                            return false;
+                        }
+                    } else {
+                        const distToPlayer = Math.hypot(px - projectile.x, py - projectile.y);
+                        if (distToPlayer < (projectile.damageRange || 30)) {
+                            if (projectile.element) projectile.element.remove();
+                            spawnPixelExplosion(projectile.x, projectile.y, '#fff7aa', '#ff9a46', '#ff5f31');
+                            applyPlayerDamage(34, px, py, 'rocket');
+                            return false;
+                        }
+                    }
+
+                    if (
+                        projectile.life > 240 ||
+                        projectile.x < -40 || projectile.x > this.gameEnv.innerWidth + 40 ||
+                        projectile.y < -40 || projectile.y > this.gameEnv.innerHeight + 40
+                    ) {
+                        if (projectile.element) projectile.element.remove();
+                        return false;
+                    }
+
+                    return true;
+                });
+            };
+
+            const distancePointToSegment = (px1, py1, x1, y1, x2, y2) => {
+                const vx = x2 - x1;
+                const vy = y2 - y1;
+                const wx = px1 - x1;
+                const wy = py1 - y1;
+                const vv = vx * vx + vy * vy;
+                const t = vv > 0 ? Math.max(0, Math.min(1, (wx * vx + wy * vy) / vv)) : 0;
+                const cx = x1 + t * vx;
+                const cy = y1 + t * vy;
+                return Math.hypot(px1 - cx, py1 - cy);
+            };
+
+            state.projectiles = updateRocketList(state.projectiles, 'boss');
+            state.enemyProjectiles = updateRocketList(state.enemyProjectiles, 'player');
+
+            this.bossState.projectiles = this.bossState.projectiles.filter((projectile) => {
+                projectile.life += 1;
+
+                if (projectile.type === 'rocket' && projectile.homing > 0) {
+                    const tx = bx - projectile.x;
+                    const ty = by - projectile.y;
+                    const tMag = Math.max(1, Math.hypot(tx, ty));
+                    const desiredVX = (tx / tMag) * projectile.speed;
+                    const desiredVY = (ty / tMag) * projectile.speed;
+                    projectile.vx += (desiredVX - projectile.vx) * projectile.homing;
+                    projectile.vy += (desiredVY - projectile.vy) * projectile.homing;
+                }
+
+                projectile.x += projectile.vx;
+                projectile.y += projectile.vy;
+
+                if (projectile.element) {
+                    projectile.element.style.left = `${projectile.x}px`;
+                    projectile.element.style.top = `${top + projectile.y}px`;
+                    projectile.element.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(projectile.vy, projectile.vx) + (projectile.angleOffset || 0)}rad)`;
+                }
+
+                const hitSummon = state.summons.findIndex((summon) => {
+                    const obj = summon.obj;
+                    if (!obj || !obj.position) return false;
+                    return (
+                        projectile.x > obj.position.x &&
+                        projectile.x < obj.position.x + obj.width &&
+                        projectile.y > obj.position.y &&
+                        projectile.y < obj.position.y + obj.height
+                    );
+                });
+
+                if (hitSummon >= 0) {
+                    const summon = state.summons[hitSummon];
+                    const sx = (summon.obj?.position?.x || projectile.x) + (summon.obj?.width || 0) * 0.5;
+                    const sy = (summon.obj?.position?.y || projectile.y) + (summon.obj?.height || 0) * 0.5;
+                    const attack = consumePlayerAttackDamage(projectile.baseDamage || 9, { allowCrit: !!projectile.shotCritical });
+                    spawnHitEffect(sx, sy, '#ffd18a');
+                    summon.hp = Math.max(0, (summon.hp ?? 1) - attack.damage);
+                    if (summon.obj?.canvas) {
+                        summon.obj.canvas.style.filter = attack.isCritical ? 'brightness(1.45) saturate(1.18)' : 'brightness(1.15) saturate(1.08)';
+                    }
+                    if (summon.hp <= 0) {
+                        if (summon.obj?.destroy) summon.obj.destroy();
+                        state.summons.splice(hitSummon, 1);
+                    }
+                    applyLifestealFromDamage(attack.damage);
+                    if (projectile.element) projectile.element.remove();
+                    return false;
+                }
+
+                const hitBoss = (
+                    projectile.x > boss.position.x &&
+                    projectile.x < boss.position.x + boss.width &&
+                    projectile.y > boss.position.y &&
+                    projectile.y < boss.position.y + boss.height
+                );
+
+                if (hitBoss) {
+                    if (projectile.element) projectile.element.remove();
+                    const attack = consumePlayerAttackDamage(projectile.baseDamage || 9, { allowCrit: !!projectile.shotCritical });
+                    applyMermaidBossDamage(attack.damage, projectile.x, projectile.y);
+                    applyLifestealFromDamage(attack.damage);
+                    return false;
+                }
+
+                if (
+                    projectile.life > 180 ||
+                    projectile.x < -20 || projectile.x > this.gameEnv.innerWidth + 20 ||
+                    projectile.y < -20 || projectile.y > this.gameEnv.innerHeight + 20
+                ) {
+                    if (projectile.element) projectile.element.remove();
+                    return false;
+                }
+
+                return true;
+            });
+
+            state.bombs = state.bombs.filter((bomb) => {
+                bomb.age += 16;
+                bomb.x += bomb.vx;
+                bomb.y += bomb.vy;
+
+                const frameWidth = bomb.size;
+                const frameHeight = bomb.size;
+                const isDropping = bomb.phase === 'drop';
+                const lowHealth = !!bomb.lowHealth;
+
+                if (bomb.element) {
+                    bomb.element.style.left = `${bomb.x}px`;
+                    bomb.element.style.top = `${top + bomb.y}px`;
+                    bomb.element.style.width = `${bomb.size}px`;
+                    bomb.element.style.height = `${bomb.size}px`;
+                    bomb.element.style.backgroundSize = `${frameWidth * 4}px ${frameHeight * 6}px`;
+                }
+
+                if (isDropping) {
+                    const row = Math.min(2, Math.floor(bomb.age / 700));
+                    const column = Math.min(3, Math.floor((bomb.age / 140) % 4));
+                    if (bomb.element) {
+                        bomb.element.style.backgroundPosition = `-${column * frameWidth}px -${row * frameHeight}px`;
+                        bomb.element.style.transform = `translate(-50%, -50%) rotate(${Math.sin(bomb.age * 0.02) * 2}deg)`;
+                    }
+
+                    const toPlayerBomb = Math.hypot(px - bomb.x, py - bomb.y);
+                    const shouldExplode = bomb.age >= bomb.explodeDelayMs || toPlayerBomb < bomb.size * 0.75 || bomb.y >= this.gameEnv.innerHeight - bomb.size * 0.7;
+                    if (shouldExplode) {
+                        bomb.phase = 'boom';
+                        bomb.explodeStartedAt = now;
+                        bomb.vx = 0;
+                        bomb.vy = 0;
+                        spawnMermaidBombExplosion(bomb.x, bomb.y, lowHealth ? 1.22 : 1);
+                        if (toPlayerBomb < bomb.size * 0.92) {
+                            applyPlayerDamage(lowHealth ? Math.ceil(this.bossState.playerMaxHp * 0.32) : Math.ceil(this.bossState.playerMaxHp * 0.22), bomb.x, bomb.y, 'bomb');
+                        }
+                    }
+                    return true;
+                }
+
+                if (!bomb.explodeStartedAt) bomb.explodeStartedAt = now;
+                const explodeAge = now - bomb.explodeStartedAt;
+                const row = 3 + Math.min(2, Math.floor(explodeAge / 160));
+                const column = Math.min(3, Math.floor((explodeAge / 95) % 4));
+                const scale = lowHealth ? 1.2 + Math.min(0.35, explodeAge / 2200) : 1 + Math.min(0.2, explodeAge / 2600);
+
+                if (bomb.element) {
+                    bomb.element.style.backgroundPosition = `-${column * frameWidth}px -${row * frameHeight}px`;
+                    bomb.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                    bomb.element.style.opacity = `${Math.max(0, 1 - explodeAge / 820)}`;
+                }
+
+                if (explodeAge >= 820) {
+                    if (bomb.element) bomb.element.remove();
+                    return false;
+                }
+                return true;
+            });
+
+            state.summons = state.summons.filter((summon) => {
+                const obj = summon.obj;
+                if (!obj || !obj.canvas || !obj.position) return false;
+                if ((summon.hp ?? 1) <= 0) {
+                    if (obj.destroy) obj.destroy();
+                    return false;
+                }
+
+                const sx = obj.position.x + obj.width * 0.5;
+                const sy = obj.position.y + obj.height * 0.5;
+                const dx = px - sx;
+                const dy = py - sy;
+                const dist = Math.hypot(dx, dy);
+                const mag = Math.max(1, dist);
+                const moveX = (dx / mag) * summon.speed;
+                const moveY = (dy / mag) * summon.speed;
+
+                if (dist > summon.contactRange) {
+                    obj.position.x += moveX;
+                    obj.position.y += moveY;
+                    obj.direction = dist > 220
+                        ? 'rangedAttack'
+                        : (dist > 150
+                            ? (summon.speed > 1.9 ? 'sprint' : 'walk')
+                            : 'sprintAlt');
+                    obj.canvas.style.filter = 'brightness(1.02) saturate(1.04)';
+                } else {
+                    obj.direction = 'attack';
+                    if (now - (summon.lastHitAt || 0) >= summon.contactCooldownMs) {
+                        applyPlayerDamage(summon.damage, px, py, 'guardian');
+                        summon.lastHitAt = now;
+                        spawnHitEffect(px, py, '#d9f5ff');
+                    }
+                }
+
+                if (dist < 120 && state.activeAbility !== 'summon') {
+                    obj.direction = 'attack';
+                }
+
+                return true;
+            });
+
+            if (state.activeAbility === 'assault') {
+                boss.direction = 'assault';
+                const assaultSpeed = 8.3;
+                boss.position.x += normalizedX * assaultSpeed;
+                boss.position.y += normalizedY * assaultSpeed;
+
+                const collisionDistance = Math.hypot((boss.position.x + boss.width * 0.5) - px, (boss.position.y + boss.height * 0.5) - py);
+                if (collisionDistance < 118) {
+                    applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.5), px, py, 'assault');
+                    state.activeAbility = null;
+                    state.abilityCommitted = false;
+                    state.abilityEndsAt = 0;
+                } else if (now >= state.abilityEndsAt) {
+                    state.activeAbility = null;
+                    state.abilityCommitted = false;
+                    state.abilityEndsAt = 0;
+                }
+            } else if (state.activeAbility === 'laser') {
+                boss.direction = 'laser';
+                if (!state.abilityCommitted) {
+                    if (!state.laserChargeStartAt) state.laserChargeStartAt = now;
+                    if (now - state.laserChargeStartAt >= state.laserChargeMs) {
+                        launchMermaidLaser();
+                        state.abilityCommitted = true;
+                        state.abilityEndsAt = now + 1200;
+                    }
+                } else if (state.laserBeam?.element) {
+                    const beam = state.laserBeam;
+                    const beamProgress = Math.min(1, (now - (beam.until - 1200)) / 220);
+                    const beamLength = Math.hypot(beam.x2 - beam.x1, beam.y2 - beam.y1) * Math.max(0.22, beamProgress);
+                    const beamAngle = Math.atan2(beam.y2 - beam.y1, beam.x2 - beam.x1);
+                    beam.element.style.width = `${beamLength}px`;
+                    beam.element.style.transform = `translate(0, -50%) rotate(${beamAngle}rad)`;
+                    beam.element.style.opacity = `${0.28 + beamProgress * 0.72}`;
+
+                    const hitDistance = distancePointToSegment(px, py, beam.x1, beam.y1, beam.x2, beam.y2);
+                    if (hitDistance < 30) {
+                        applyPlayerDamage(this.bossState.playerHp, px, py, 'superLaser');
+                    }
+
+                    if (now >= beam.until) {
+                        beam.element.remove();
+                        state.laserBeam = null;
+                        state.activeAbility = null;
+                        state.abilityCommitted = false;
+                        state.laserChargeStartAt = 0;
+                        state.abilityEndsAt = 0;
+                    }
+                }
+            } else {
+                const isLowPhase = state.phaseTwoUnlocked;
+                if (isLowPhase) {
+                    boss.direction = 'slowMove';
+                    const desiredDistance = state.phaseThreeUnlocked ? 150 : 176;
+                    const desiredCenterX = playerX - normalizedX * desiredDistance + orbitX * 22;
+                    const desiredCenterY = playerY - normalizedY * desiredDistance + orbitY * 18;
+                    const clampedCenterX = Math.max(boss.width * 0.55, Math.min(this.gameEnv.innerWidth - boss.width * 0.55, desiredCenterX));
+                    const clampedCenterY = Math.max(boss.height * 0.55, Math.min(this.gameEnv.innerHeight - boss.height * 0.55, desiredCenterY));
+                    boss.position.x += (clampedCenterX - bx) * 0.01;
+                    boss.position.y += (clampedCenterY - by) * 0.01;
+                } else {
+                    boss.direction = 'down';
+                }
+            }
+
+            if (!state.activeAbility) {
+                if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
+                    startMermaidBossAbility('laser', state.laserChargeMs);
+                    state.laserChargeStartAt = now;
+                } else if (state.phaseTwoUnlocked && now >= state.nextBombAt) {
+                    startMermaidBossAbility('bombs', 520);
+                } else if (state.phaseTwoUnlocked && now >= state.nextSummonAt) {
+                    startMermaidBossAbility('summon', 520);
+                } else if (state.phaseTwoUnlocked && now >= state.nextAssaultAt) {
+                    startMermaidBossAbility('assault', state.assaultDurationMs);
+                }
+            }
+
+            if (state.activeAbility === 'bombs' && !state.abilityCommitted) {
+                spawnMermaidBombs();
+                state.abilityCommitted = true;
+            } else if (state.activeAbility === 'summon' && !state.abilityCommitted) {
+                spawnMermaidStarGuardians();
+                state.abilityCommitted = true;
+            } else if (state.activeAbility === 'assault') {
+                state.abilityCommitted = true;
+            }
+
+            if (state.activeAbility && state.activeAbility !== 'laser' && now >= state.abilityEndsAt) {
+                state.activeAbility = null;
+                state.abilityCommitted = false;
+                state.abilityEndsAt = 0;
+            }
+
+            if (state.phaseFourUnlocked) {
+                state.summonCooldownMs = 25000;
+            }
+
+            updateBossHud();
+
+            if (state.hp <= 0) {
+                showMermaidBossDefeat();
+            }
+        };
+
+        const startMermaidBossEncounter = async () => {
+            const state = this.mermaidBossState;
+            if (!state || state.active || state.introPlayed) return;
+
+            const boss = getMermaidBossEntity();
+            if (!boss) return;
+
+            state.boss = boss;
+            state.introPlayed = true;
+            state.active = true;
+            state.combatReady = true;
+            this.bossState.combatReady = true;
+            state.defeated = false;
+            state.deathCleanupAt = 0;
+            state.hp = state.maxHp;
+            state.activeAbility = null;
+            state.abilityCommitted = false;
+            state.abilityEndsAt = 0;
+            state.laserChargeStartAt = 0;
+            state.laserBeam = null;
+            state.volleyShotsRemaining = 0;
+            state.nextVolleyShotAt = Date.now() + 1400;
+            state.nextVolleyReadyAt = Date.now() + 1200;
+            state.nextAssaultAt = Date.now() + 6500;
+            state.nextBombAt = Date.now() + 9500;
+            state.nextSummonAt = Date.now() + 13500;
+            state.nextLaserAt = Date.now() + 22000;
+            state.phaseTwoUnlocked = false;
+            state.phaseThreeUnlocked = false;
+            state.phaseFourUnlocked = false;
+            state.assaultCooldownMs = 20000;
+            state.bombCooldownMs = 15000;
+            state.summonCooldownMs = 45000;
+            if (state.laserBeam?.element) state.laserBeam.element.remove();
+            state.laserBeam = null;
+            state.projectiles.forEach((projectile) => projectile?.element?.remove());
+            state.enemyProjectiles.forEach((projectile) => projectile?.element?.remove());
+            state.bombs.forEach((bomb) => bomb?.element?.remove());
+            state.summons.forEach((summon) => summon?.obj?.destroy?.());
+            state.projectiles = [];
+            state.enemyProjectiles = [];
+            state.bombs = [];
+            state.summons = [];
+            bindBossInput();
+            ensureBossHud();
+            updateBossHud();
+
+            const mermaid = getNpcById('Mermaid');
+            if (mermaid?.canvas) mermaid.canvas.style.display = 'none';
+            if (mermaid?.position) {
+                mermaid.position.x = -10000;
+                mermaid.position.y = -10000;
+            }
+
+            setMermaidBossSpriteSheet(mermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 6, columns: 6 });
+            boss.direction = 'down';
+            boss.frameIndex = 0;
+            boss.frameCounter = 0;
+            if (boss.canvas) boss.canvas.style.filter = '';
+            stopUnderwaterTheme();
+            stopBossTheme();
+            playMermaidBossTheme();
+
+            const player = getPlayer();
+            if (player?.position) {
+                const px = player.position.x + player.width * 0.5;
+                const py = player.position.y + player.height * 0.5;
+                const bx = boss.position.x + boss.width * 0.5;
+                const by = boss.position.y + boss.height * 0.5;
+                player.direction = getDirectionToward(px, py, bx, by);
+            }
+        };
+
+        this.startMermaidBossEncounter = startMermaidBossEncounter;
+        this.updateMermaidBossCombat = updateMermaidBossCombat;
 
         const getBossOverlayRoot = () => this.gameEnv?.container || document.body;
         const getBossOverlayTopOffset = () => (getBossOverlayRoot() === document.body ? (this.gameEnv.top || 0) : 0);
@@ -2957,6 +4321,62 @@ class GameLevelAquaticGameLevel {
                 fx.style.opacity = '0';
             });
             setTimeout(() => fx.remove(), 260);
+        };
+
+        const spawnPixelExplosion = (x, y, colorA = '#fff5a3', colorB = '#ff9b47', colorC = '#ff5f31') => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 12;
+            canvas.height = 12;
+            canvas.style.width = '48px';
+            canvas.style.height = '48px';
+            canvas.style.imageRendering = 'pixelated';
+            canvas.style.position = 'absolute';
+            canvas.style.left = `${x}px`;
+            canvas.style.top = `${getBossOverlayTopOffset() + y}px`;
+            canvas.style.transform = 'translate(-50%, -50%) scale(0.6)';
+            canvas.style.opacity = '1';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '10064';
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.imageSmoothingEnabled = false;
+
+            const fillPixel = (cx, cy, color) => {
+                ctx.fillStyle = color;
+                ctx.fillRect(cx, cy, 1, 1);
+            };
+
+            const pattern = Math.random() < 0.5 ? [
+                [5, 0, colorA], [6, 0, colorA],
+                [4, 1, colorA], [5, 1, colorB], [6, 1, colorA], [7, 1, colorB],
+                [3, 2, colorB], [4, 2, colorC], [5, 2, colorB], [6, 2, colorC], [7, 2, colorB], [8, 2, colorC],
+                [2, 3, colorB], [3, 3, colorC], [4, 3, colorB], [5, 3, colorA], [6, 3, colorB], [7, 3, colorC], [8, 3, colorB], [9, 3, colorB],
+                [3, 4, colorC], [4, 4, colorB], [5, 4, colorA], [6, 4, colorA], [7, 4, colorB], [8, 4, colorC],
+                [4, 5, colorB], [5, 5, colorC], [6, 5, colorB], [7, 5, colorA],
+                [5, 6, colorC], [6, 6, colorB], [7, 6, colorB],
+                [5, 7, colorB], [6, 7, colorA],
+                [6, 8, colorC]
+            ] : [
+                [5, 0, colorA], [6, 0, colorA],
+                [4, 1, colorB], [5, 1, colorA], [6, 1, colorA], [7, 1, colorB],
+                [3, 2, colorC], [4, 2, colorB], [5, 2, colorA], [6, 2, colorA], [7, 2, colorB], [8, 2, colorC],
+                [2, 3, colorB], [3, 3, colorC], [4, 3, colorB], [5, 3, colorA], [6, 3, colorA], [7, 3, colorB], [8, 3, colorC], [9, 3, colorB],
+                [3, 4, colorB], [4, 4, colorA], [5, 4, colorA], [6, 4, colorA], [7, 4, colorA], [8, 4, colorB],
+                [4, 5, colorC], [5, 5, colorB], [6, 5, colorA], [7, 5, colorB],
+                [5, 6, colorB], [6, 6, colorA], [7, 6, colorC],
+                [6, 7, colorB], [7, 7, colorA],
+                [6, 8, colorC]
+            ];
+
+            pattern.forEach(([cx, cy, color]) => fillPixel(cx, cy, color));
+            appendBossOverlay(canvas);
+
+            requestAnimationFrame(() => {
+                canvas.style.transform = 'translate(-50%, -50%) scale(1.9)';
+                canvas.style.opacity = '0';
+            });
+            setTimeout(() => canvas.remove(), 220);
         };
 
         const getBossThemeAudio = () => {
@@ -3032,6 +4452,51 @@ class GameLevelAquaticGameLevel {
                 }
             });
             this.bossState.activeThemeAudio = null;
+        };
+
+        const getMermaidBossThemeAudio = () => {
+            if (this.mermaidBossState.themeAudio) return this.mermaidBossState.themeAudio;
+
+            const audio = new Audio(this.mermaidBossMusicSrc);
+            audio.loop = true;
+            audio.preload = 'auto';
+            audio.volume = 0.55;
+            this.mermaidBossState.themeAudio = audio;
+            return audio;
+        };
+
+        const playMermaidBossTheme = async () => {
+            stopBossTheme(false);
+            const audio = getMermaidBossThemeAudio();
+            audio.pause();
+            audio.currentTime = 0;
+            this.mermaidBossState.activeThemeAudio = audio;
+
+            try {
+                await audio.play();
+            } catch (err) {
+                console.warn('Unable to play mermaid boss theme', err);
+            }
+        };
+
+        const resumeMermaidBossTheme = async () => {
+            const audio = this.mermaidBossState.activeThemeAudio || getMermaidBossThemeAudio();
+            if (!audio.paused) return;
+            try {
+                await audio.play();
+            } catch (err) {
+                console.warn('Unable to resume mermaid boss theme', err);
+            }
+        };
+
+        const stopMermaidBossTheme = (resetPlayback = true) => {
+            const audio = this.mermaidBossState.themeAudio;
+            if (!audio) return;
+            audio.pause();
+            if (resetPlayback) {
+                audio.currentTime = 0;
+            }
+            this.mermaidBossState.activeThemeAudio = null;
         };
 
         const getUnderwaterThemeAudio = () => {
@@ -3146,8 +4611,10 @@ class GameLevelAquaticGameLevel {
             if (isPaused) {
                 this.pauseSyncState.pausedAt = Date.now();
                 this.pauseSyncState.resumeBossTheme = !!this.bossState.themeAudio && !this.bossState.themeAudio.paused;
+                this.pauseSyncState.resumeMermaidBossTheme = !!this.mermaidBossState.themeAudio && !this.mermaidBossState.themeAudio.paused;
                 this.pauseSyncState.resumeUnderwaterTheme = !!this.pauseSyncState.underwaterThemeAudio && !this.pauseSyncState.underwaterThemeAudio.paused;
                 stopBossTheme(false);
+                stopMermaidBossTheme(false);
                 stopUnderwaterTheme(false);
                 return true;
             }
@@ -3156,13 +4623,16 @@ class GameLevelAquaticGameLevel {
             this.pauseSyncState.pausedAt = 0;
             shiftBossPauseTimers(elapsedMs);
 
-            if (this.pauseSyncState.resumeBossTheme && this.bossState.active) {
+            if (this.pauseSyncState.resumeMermaidBossTheme && this.mermaidBossState.active) {
+                resumeMermaidBossTheme();
+            } else if (this.pauseSyncState.resumeBossTheme && this.bossState.active) {
                 resumeBossTheme();
             } else if (this.pauseSyncState.resumeUnderwaterTheme && shouldPlayUnderwaterTheme()) {
                 playUnderwaterTheme(false);
             }
 
             this.pauseSyncState.resumeBossTheme = false;
+            this.pauseSyncState.resumeMermaidBossTheme = false;
             this.pauseSyncState.resumeUnderwaterTheme = false;
             return false;
         };
@@ -3757,13 +5227,19 @@ class GameLevelAquaticGameLevel {
                         boss.destroy();
                     }
                     this.bossState.megalodon = null;
-                    showBossVictoryWindow();
+                    this.cleanupBossEncounter?.();
+                    const q2 = questState.secondQuest;
+                    q2.pendingSlimeCompletion = false;
+                    q2.megalodonDefeated = true;
+                    updateQuestHud();
+                    showBottomStoryDialogue('Slime', 'You defeated the megalodon. Talk to me when you are ready to go onto the lands... or stay here.', 4200);
                 });
             }
         };
 
         const applyPlayerDamage = (damage, hitX, hitY, sourceType = 'generic') => {
-            if (!this.bossState.active || !this.bossState.combatReady) return;
+            const mermaidCombatActive = !!this.mermaidBossState?.active && !!this.mermaidBossState?.combatReady;
+            if ((!this.bossState.active || !this.bossState.combatReady) && !mermaidCombatActive) return;
 
             if (sourceType === 'laser' && this.bossState.buffs.mirrorReady) {
                 this.bossState.buffs.mirrorReady = false;
@@ -3790,6 +5266,9 @@ class GameLevelAquaticGameLevel {
             }
 
             let finalDamage = damage;
+            if (sourceType === 'superLaser') {
+                finalDamage = this.bossState.playerHp;
+            }
             if (isBuffActive('shieldUntil')) {
                 if (sourceType === 'sharkBite') {
                     if (typeof hitX === 'number' && typeof hitY === 'number') {
@@ -3809,6 +5288,7 @@ class GameLevelAquaticGameLevel {
             updateBossHud();
             if (this.bossState.playerHp <= 0) {
                 stopBossTheme();
+                stopMermaidBossTheme();
                 stopUnderwaterTheme();
                 this.showSharkGameOver();
             }
@@ -3870,7 +5350,8 @@ class GameLevelAquaticGameLevel {
             if (!this.bossState.combatReady) return;
             const player = getPlayer();
             const boss = this.bossState.megalodon;
-            if (!player || !boss) return;
+            const mermaidBoss = this.mermaidBossState?.boss;
+            if (!player || (!boss && !mermaidBoss)) return;
 
             const now = Date.now();
             if (now - this.bossState.lastMeleeAt < this.bossState.meleeCooldownMs) return;
@@ -3929,14 +5410,20 @@ class GameLevelAquaticGameLevel {
             setTimeout(() => arc.remove(), 170);
             setTimeout(() => tridentSwing.remove(), 170);
 
-            const bx = boss.position.x + boss.width * 0.5;
-            const by = boss.position.y + boss.height * 0.5;
-            const dist = Math.hypot(bx - px, by - py);
-            if (dist < 150) {
-                const attack = consumePlayerAttackDamage(18);
-                applyBossDamage(attack.damage, bx, by);
-                applyLifestealFromDamage(attack.damage);
-            }
+            const applyBossMeleeDamage = (targetBoss, damageFn) => {
+                if (!targetBoss) return;
+                const tx = targetBoss.position.x + targetBoss.width * 0.5;
+                const ty = targetBoss.position.y + targetBoss.height * 0.5;
+                const dist = Math.hypot(tx - px, ty - py);
+                if (dist < 150) {
+                    const attack = consumePlayerAttackDamage(18);
+                    damageFn(attack.damage, tx, ty);
+                    applyLifestealFromDamage(attack.damage);
+                }
+            };
+
+            applyBossMeleeDamage(boss, applyBossDamage);
+            applyBossMeleeDamage(mermaidBoss, applyMermaidBossDamage);
 
             // Summoned sharks are intentionally fragile and die in one melee hit.
             this.bossState.summons = this.bossState.summons.filter((minion) => {
@@ -3954,40 +5441,52 @@ class GameLevelAquaticGameLevel {
 
             const swingForwardX = Math.cos(angle);
             const swingForwardY = Math.sin(angle);
-            this.bossState.enemyProjectiles = this.bossState.enemyProjectiles.filter((projectile) => {
-                if (projectile?.type !== 'rocket') return true;
+            const reflectEnemyProjectiles = (state, targetBoss, targetProjectiles) => {
+                if (!state?.active || !targetBoss) return;
 
-                const rocketDx = projectile.x - px;
-                const rocketDy = projectile.y - py;
-                const rocketDist = Math.hypot(rocketDx, rocketDy);
-                if (rocketDist > 148) return true;
+                const bx = targetBoss.position.x + targetBoss.width * 0.5;
+                const by = targetBoss.position.y + targetBoss.height * 0.5;
 
-                const alignment = rocketDist > 0
-                    ? ((rocketDx / rocketDist) * swingForwardX + (rocketDy / rocketDist) * swingForwardY)
-                    : 1;
-                if (alignment < 0.12) return true;
+                state.enemyProjectiles = state.enemyProjectiles.filter((projectile) => {
+                    if (projectile?.type !== 'rocket') return true;
 
-                const bossDx = bx - projectile.x;
-                const bossDy = by - projectile.y;
-                const bossMag = Math.max(1, Math.hypot(bossDx, bossDy));
-                const reflectedSpeed = Math.max(7.1, (projectile.speed || 5) + 1.9);
-                projectile.vx = (bossDx / bossMag) * reflectedSpeed;
-                projectile.vy = (bossDy / bossMag) * reflectedSpeed;
-                projectile.speed = reflectedSpeed;
-                projectile.homing = 0;
-                projectile.damage = 24;
-                projectile.life = 0;
-                projectile.angleOffset = projectile.angleOffset || 0;
-                if (projectile.element) {
-                    projectile.element.style.filter = 'brightness(1.08) hue-rotate(165deg)';
-                }
-                if (projectile.flameElement) {
-                    projectile.flameElement.style.background = 'linear-gradient(90deg, rgba(212,255,255,0.98) 0%, rgba(118,242,255,0.94) 38%, rgba(58,180,255,0.9) 72%, rgba(58,180,255,0) 100%)';
-                }
-                spawnHitEffect(projectile.x, projectile.y, '#8ff9ff');
-                this.bossState.projectiles.push(projectile);
-                return false;
-            });
+                    const rocketDx = projectile.x - px;
+                    const rocketDy = projectile.y - py;
+                    const rocketDist = Math.hypot(rocketDx, rocketDy);
+                    if (rocketDist > 148) return true;
+
+                    const alignment = rocketDist > 0
+                        ? ((rocketDx / rocketDist) * swingForwardX + (rocketDy / rocketDist) * swingForwardY)
+                        : 1;
+                    if (alignment < 0.12) return true;
+
+                    const bossDx = bx - projectile.x;
+                    const bossDy = by - projectile.y;
+                    const bossMag = Math.max(1, Math.hypot(bossDx, bossDy));
+                    const reflectedSpeed = Math.max(7.1, (projectile.speed || 5) + 1.9);
+                    projectile.vx = (bossDx / bossMag) * reflectedSpeed;
+                    projectile.vy = (bossDy / bossMag) * reflectedSpeed;
+                    projectile.speed = reflectedSpeed;
+                    projectile.homing = 0;
+                    projectile.damage = 24;
+                    projectile.life = 0;
+                    projectile.angleOffset = projectile.angleOffset || 0;
+                    if (projectile.element) {
+                        projectile.element.style.filter = 'brightness(1.08) hue-rotate(165deg)';
+                    }
+                    if (projectile.flameElement) {
+                        projectile.flameElement.style.background = 'linear-gradient(90deg, rgba(212,255,255,0.98) 0%, rgba(118,242,255,0.94) 38%, rgba(58,180,255,0.9) 72%, rgba(58,180,255,0) 100%)';
+                    }
+                    spawnHitEffect(projectile.x, projectile.y, '#8ff9ff');
+                    spawnPixelExplosion(projectile.x, projectile.y, '#d8ffff', '#7cf6ff', '#41a8ff');
+                    targetProjectiles.push(projectile);
+                    return false;
+                });
+            };
+
+            reflectEnemyProjectiles(this.bossState, boss, this.bossState.projectiles);
+            reflectEnemyProjectiles(this.mermaidBossState, mermaidBoss, this.mermaidBossState?.projectiles || []);
+
         };
 
         const summonRushingSharks = (summonCount = 4) => {
@@ -4052,7 +5551,7 @@ class GameLevelAquaticGameLevel {
                 pixels: this.bossState.megalodonMovePixels,
                 orientation: { rows: 4, columns: 3 },
                 down: { row: 0, start: 0, columns: 3 },
-                right: { row: 1, start: 0, columns: 3, mirror: true },
+                right: { row: 2, start: 0, columns: 3, mirror: true },
                 left: { row: 2, start: 0, columns: 3 },
                 up: { row: 2, start: 0, columns: 3 },
                 upRight: { row: 2, start: 0, columns: 3, mirror: true },
@@ -4750,7 +6249,7 @@ class GameLevelAquaticGameLevel {
                 pixels: this.bossState.megalodonMovePixels,
                 orientation: { rows: 4, columns: 3 },
                 down: { row: 0, start: 0, columns: 3 },
-                right: { row: 1, start: 0, columns: 3, mirror: true },
+                right: { row: 2, start: 0, columns: 3, mirror: true },
                 left: { row: 2, start: 0, columns: 3 },
                 up: { row: 2, start: 0, columns: 3 },
                 upRight: { row: 2, start: 0, columns: 3, mirror: true },
@@ -4769,6 +6268,7 @@ class GameLevelAquaticGameLevel {
             this.bossState.megalodon = boss;
             this.gameEnv.gameObjects.push(boss);
             stopUnderwaterTheme();
+            stopMermaidBossTheme();
             playBossTheme();
             setStorySceneUiVisibility(false);
 
@@ -4860,12 +6360,62 @@ class GameLevelAquaticGameLevel {
             await this.startMegalodonEncounter?.();
         };
 
+        this.retryMermaidBossEncounter = async () => {
+            this.cleanupBossEncounter?.();
+
+            this.sharkGameOverShown = false;
+            this.playerLock = true;
+            this.bossState.playerHp = this.bossState.playerMaxHp;
+
+            if (this.mermaidBossState) {
+                this.mermaidBossState.introPlayed = false;
+                this.mermaidBossState.active = false;
+                this.mermaidBossState.combatReady = false;
+                this.mermaidBossState.hp = this.mermaidBossState.maxHp;
+            }
+
+            const q2 = questState.secondQuest;
+            q2.megalodonDefeated = true;
+            q2.mermaidBossIntroStarted = true;
+            q2.mermaidBossTriggered = true;
+            q2.mermaidBossDefeated = false;
+
+            hideKirbyAfterQuestTwo?.();
+
+            const overlay = document.getElementById('aquatic-shark-gameover');
+            if (overlay) overlay.remove();
+
+            const player = getPlayer();
+            if (player) {
+                const retryX = Math.max(38, Math.min(this.gameEnv.innerWidth * 0.38, this.gameEnv.innerWidth - player.width - 38));
+                const retryY = Math.max(52, Math.min(this.gameEnv.innerHeight * 0.54, this.gameEnv.innerHeight - player.height - 52));
+                player.position.x = retryX;
+                player.position.y = retryY;
+                player.velocity.x = 0;
+                player.velocity.y = 0;
+                if (player.pressedKeys) player.pressedKeys = {};
+                player.direction = 'right';
+            }
+
+            updateQuestHud();
+            await this.startMermaidBossEncounter?.();
+        };
+
         this.cleanupBossEncounter = () => {
             unbindBossInput();
             stopBossTheme();
+            stopMermaidBossTheme();
             setStorySceneUiVisibility(true);
             if (this.bossState.megalodon?.destroy) this.bossState.megalodon.destroy();
             this.bossState.megalodon = null;
+            if (this.mermaidBossState?.boss) {
+                if (this.mermaidBossState.boss.canvas) this.mermaidBossState.boss.canvas.style.display = 'none';
+                if (this.mermaidBossState.boss.position) {
+                    this.mermaidBossState.boss.position.x = -10000;
+                    this.mermaidBossState.boss.position.y = -10000;
+                }
+                this.mermaidBossState.boss = null;
+            }
 
             if (Array.isArray(this.bossState.hiddenNpcs)) {
                 this.bossState.hiddenNpcs.forEach((entry) => {
@@ -4913,6 +6463,38 @@ class GameLevelAquaticGameLevel {
             if (v) v.remove();
             this.bossState.active = false;
             this.bossState.combatReady = false;
+
+            if (this.mermaidBossState) {
+                this.mermaidBossState.active = false;
+                this.mermaidBossState.combatReady = false;
+                this.mermaidBossState.introPlayed = false;
+                this.mermaidBossState.phaseTwoUnlocked = false;
+                this.mermaidBossState.phaseThreeUnlocked = false;
+                this.mermaidBossState.phaseFourUnlocked = false;
+                this.mermaidBossState.volleyShotsRemaining = 0;
+                this.mermaidBossState.nextVolleyShotAt = 0;
+                this.mermaidBossState.nextVolleyReadyAt = 0;
+                this.mermaidBossState.nextAssaultAt = 0;
+                this.mermaidBossState.nextBombAt = 0;
+                this.mermaidBossState.nextSummonAt = 0;
+                this.mermaidBossState.nextLaserAt = 0;
+                this.mermaidBossState.activeAbility = null;
+                this.mermaidBossState.abilityCommitted = false;
+                this.mermaidBossState.abilityEndsAt = 0;
+                this.mermaidBossState.laserChargeStartAt = 0;
+                this.mermaidBossState.defeated = false;
+                this.mermaidBossState.deathCleanupAt = 0;
+                if (this.mermaidBossState.laserBeam?.element) this.mermaidBossState.laserBeam.element.remove();
+                this.mermaidBossState.laserBeam = null;
+                this.mermaidBossState.projectiles.forEach((projectile) => projectile?.element?.remove());
+                this.mermaidBossState.enemyProjectiles.forEach((projectile) => projectile?.element?.remove());
+                this.mermaidBossState.bombs.forEach((bomb) => bomb?.element?.remove());
+                this.mermaidBossState.summons.forEach((summon) => summon?.obj?.destroy?.());
+                this.mermaidBossState.projectiles = [];
+                this.mermaidBossState.enemyProjectiles = [];
+                this.mermaidBossState.bombs = [];
+                this.mermaidBossState.summons = [];
+            }
         };
         this.updateBossCombat = updateBossCombat;
 
@@ -5172,11 +6754,11 @@ class GameLevelAquaticGameLevel {
             pixels: { height: 948, width: 632 },
             orientation: { rows: 3, columns: 3 },
             down: { row: 0, start: 0, columns: 3 },
-            right: { row: 0, start: 0, columns: 3 },
+            right: { row: 0, start: 0, columns: 3, mirror: true },
             left: { row: 0, start: 0, columns: 3 },
             up: { row: 0, start: 0, columns: 3 },
-            upRight: { row: 0, start: 0, columns: 3 },
-            downRight: { row: 0, start: 0, columns: 3 },
+            upRight: { row: 0, start: 0, columns: 3, mirror: true },
+            downRight: { row: 0, start: 0, columns: 3, mirror: true },
             upLeft: { row: 0, start: 0, columns: 3 },
             downLeft: { row: 0, start: 0, columns: 3 },
             // Play row 2 on interaction, lock to a stable frame
@@ -5263,6 +6845,34 @@ class GameLevelAquaticGameLevel {
             }
         };
 
+        const mermaidBossNpc = {
+            id: 'MermaidBoss',
+            greeting: false,
+            src: mermaidBossSpriteSrc,
+            SCALE_FACTOR: 7.2,
+            STEP_FACTOR: 0,
+            ANIMATION_RATE: 14,
+            INIT_POSITION: { x: -900, y: 260 },
+            pixels: { height: 948, width: 948 },
+            orientation: { rows: 6, columns: 6 },
+            down: { row: 0, start: 0, columns: 6 },
+            right: { row: 2, start: 0, columns: 6, mirror: true },
+            left: { row: 2, start: 0, columns: 6 },
+            up: { row: 1, start: 0, columns: 6 },
+            upRight: { row: 2, start: 0, columns: 6, mirror: true },
+            downRight: { row: 0, start: 0, columns: 6, mirror: true },
+            upLeft: { row: 2, start: 0, columns: 6 },
+            downLeft: { row: 0, start: 0, columns: 6 },
+            slowMove: { row: 2, start: 0, columns: 6 },
+            assault: { row: 3, start: 0, columns: 6 },
+            bombs: { row: 4, start: 0, columns: 6 },
+            laser: { row: 5, start: 0, columns: 6 },
+            defeated: { row: 0, start: 0, columns: 6 },
+            hitbox: { widthPercentage: 0.14, heightPercentage: 0.22 },
+            reaction: function() {},
+            interact: function() {}
+        };
+
         const sharkNpc = {
             id: 'Shark',
             greeting: false,
@@ -5307,6 +6917,7 @@ class GameLevelAquaticGameLevel {
             { class: GameEnvBackground, data: bgData },
             { class: Player, data: playerData },
             { class: Npc, data: mermaidNpc },
+            { class: Npc, data: mermaidBossNpc },
             { class: Npc, data: slimeNpc },
             { class: Npc, data: kirbyNpc },
             { class: Npc, data: sharkNpc },
@@ -5330,6 +6941,7 @@ class GameLevelAquaticGameLevel {
             this._runnerFullscreenKeyListenerAttached = true;
         }
         this.ensureTopMenuBar?.();
+        this.installAdminConsoleShortcut?.();
         if (this.multiplayer.enabled && this.multiplayer.room) {
             this.startMultiplayer?.();
         }
@@ -5416,6 +7028,53 @@ class GameLevelAquaticGameLevel {
                 this.canvas.style.top = `${this.gameEnv.top + this.position.y}px`;
                 this.canvas.style.zIndex = (this.data && this.data.zIndex !== undefined) ? this.data.zIndex : "10";
             };
+        }
+
+        const mermaidBoss = this.gameEnv?.gameObjects?.find(
+            obj => obj?.spriteData?.id === 'MermaidBoss'
+        );
+        if (mermaidBoss) {
+            const applyMermaidBossFrameSizing = function() {
+                const pixels = this.spriteData?.pixels || { width: this.canvas.width, height: this.canvas.height };
+                const orientation = this.spriteData?.orientation || { rows: 1, columns: 1 };
+                const frameW = Math.max(1, Math.round(pixels.width / Math.max(1, orientation.columns || 1)));
+                const frameH = Math.max(1, Math.round(pixels.height / Math.max(1, orientation.rows || 1)));
+                const frameScale = 1.12;
+                this.width = Math.round(frameW * frameScale);
+                this.height = Math.round(frameH * frameScale);
+            };
+
+            mermaidBoss.resize = function() {
+                const previousScale = this.scale || { width: this.gameEnv.innerWidth, height: this.gameEnv.innerHeight };
+                const newScale = { width: this.gameEnv.innerWidth, height: this.gameEnv.innerHeight };
+                const xRatio = previousScale.width ? this.position.x / previousScale.width : 0;
+                const yRatio = previousScale.height ? this.position.y / previousScale.height : 0;
+
+                this.scale = newScale;
+                applyMermaidBossFrameSizing.call(this);
+
+                this.position.x = xRatio * newScale.width;
+                this.position.y = yRatio * newScale.height;
+                this.position.x = Math.max(0, Math.min(this.position.x, newScale.width - this.width));
+                this.position.y = Math.max(0, Math.min(this.position.y, newScale.height - this.height));
+            };
+
+            mermaidBoss.setupCanvas = function() {
+                this.canvas.style.width = `${this.width}px`;
+                this.canvas.style.height = `${this.height}px`;
+                this.canvas.style.position = 'absolute';
+                this.canvas.style.left = `${this.position.x}px`;
+                this.canvas.style.top = `${this.gameEnv.top + this.position.y}px`;
+                this.canvas.style.zIndex = (this.data && this.data.zIndex !== undefined) ? this.data.zIndex : '10';
+            };
+
+            applyMermaidBossFrameSizing.call(mermaidBoss);
+
+            if (mermaidBoss.canvas) mermaidBoss.canvas.style.display = 'none';
+            mermaidBoss.position.x = -10000;
+            mermaidBoss.position.y = -10000;
+            mermaidBoss.interact = function() {};
+            mermaidBoss.reaction = function() {};
         }
 
         if (this.gameMode === 'challenge') {
@@ -5596,6 +7255,7 @@ class GameLevelAquaticGameLevel {
             this._bossUpdateTimer = setInterval(() => {
                 if (this.syncAquaticPauseState?.()) return;
                 this.updateBossCombat?.();
+                this.updateMermaidBossCombat?.();
             }, 16);
         }
     }
@@ -5657,5 +7317,6 @@ class GameLevelAquaticGameLevel {
 
 }
 
+export const gameLevelClasses = [GameLevelAquaticGameLevel];
 export default GameLevelAquaticGameLevel;
 //
