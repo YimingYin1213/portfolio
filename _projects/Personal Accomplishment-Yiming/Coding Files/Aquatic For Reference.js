@@ -3396,16 +3396,16 @@ class GameLevelAquaticGameLevel {
             if (!boss) return;
 
             if (abilityName === 'assault') {
-                boss.direction = 'assault';
+                boss.direction = 'slowMove';
                 state.nextAssaultAt = Date.now() + state.assaultCooldownMs;
             } else if (abilityName === 'bombs') {
-                boss.direction = 'bombs';
+                boss.direction = 'slowMove';
                 state.nextBombAt = Date.now() + state.bombCooldownMs;
             } else if (abilityName === 'summon') {
-                boss.direction = 'bombs';
+                boss.direction = 'slowMove';
                 state.nextSummonAt = Date.now() + state.summonCooldownMs;
             } else if (abilityName === 'laser') {
-                boss.direction = 'laser';
+                boss.direction = 'slowMove';
                 state.nextLaserAt = Date.now() + state.laserCooldownMs;
                 state.laserChargeStartAt = Date.now();
                 state.laserBeam = null;
@@ -3433,7 +3433,7 @@ class GameLevelAquaticGameLevel {
             state.laserBeam = null;
 
             const boss = state.boss;
-            setMermaidBossSpriteSheet(defeatedMermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 4, columns: 6 });
+            setMermaidBossSpriteSheet(defeatedMermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 6, columns: 6 });
             boss.direction = 'defeated';
             boss.frameIndex = 0;
             boss.frameCounter = 0;
@@ -4143,7 +4143,7 @@ class GameLevelAquaticGameLevel {
                     state.laserChargeStartAt = now;
                 } else if (state.phaseTwoUnlocked && now >= state.nextBombAt) {
                     startMermaidBossAbility('bombs', 520);
-                } else if (state.phaseTwoUnlocked && now >= state.nextSummonAt) {
+                } else if (state.phaseFourUnlocked && now >= state.nextSummonAt) {
                     startMermaidBossAbility('summon', 520);
                 } else if (state.phaseTwoUnlocked && now >= state.nextAssaultAt) {
                     startMermaidBossAbility('assault', state.assaultDurationMs);
@@ -6803,9 +6803,9 @@ class GameLevelAquaticGameLevel {
             upLeft: { row: 2, start: 0, columns: 6 },
             downLeft: { row: 0, start: 0, columns: 6 },
             slowMove: { row: 2, start: 0, columns: 6 },
-            assault: { row: 3, start: 0, columns: 6 },
-            bombs: { row: 4, start: 0, columns: 6 },
-            laser: { row: 5, start: 0, columns: 6 },
+            assault: { row: 2, start: 0, columns: 6 },
+            bombs: { row: 2, start: 0, columns: 6 },
+            laser: { row: 2, start: 0, columns: 6 },
             defeated: { row: 0, start: 0, columns: 6 },
             hitbox: { widthPercentage: 0.14, heightPercentage: 0.22 },
             reaction: function() {},

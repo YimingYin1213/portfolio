@@ -10,10 +10,79 @@ permalink: /personal-accomplishment-yiming/cs111-notes/
 html {
   scroll-behavior: smooth;
 }
+
+.auto-code-runner-wrap {
+  margin: 8px 0 18px 0;
+  border: 1px solid rgba(14, 66, 98, 0.28);
+  border-radius: 10px;
+  background: rgba(7, 29, 43, 0.035);
+}
+
+.auto-code-runner-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(14, 66, 98, 0.18);
+}
+
+.auto-code-runner-btn {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auto-code-runner-btn.run {
+  background: #0c6ea3;
+  color: #f4fcff;
+}
+
+.auto-code-runner-btn.clear {
+  background: #dbeaf3;
+  color: #14384d;
+}
+
+.auto-code-runner-output {
+  margin: 0;
+  padding: 10px;
+  min-height: 22px;
+  max-height: 240px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #0f2f44;
+  white-space: pre-wrap;
+}
 </style>
+
+<script src="{{site.baseurl}}/assets/js/auto-code-runner-cs111.js"></script>
 
 # Aquatic Game Level Explanation
 This notebook explains the code in Aquatic For Reference.js using CSSE topics like functions, arrays, booleans, conditionals, classes, constructors, methods, strings, data abstraction, math expressions, variables, and iteration.
+
+{% capture challenge0 %}
+Run the real aquatic level from the project source file.
+{% endcapture %}
+
+{% capture code0 %}
+import GameControl from '/assets/js/GameEnginev1/essentials/GameControl.js';
+import GameLevelAquaticGameLevel from '/assets/js/GameEnginev1/GameLevelAquaticGameLevel.js';
+
+export const gameLevelClasses = [GameLevelAquaticGameLevel];
+export { GameControl };
+{% endcapture %}
+
+{% include runners/game.html
+  runner_id="personal-accomplishment-yiming-cs111-lessons-0"
+  challenge=challenge0
+  code=code0
+  hide_edit="true"
+  width="100%"
+  height="620px"
+%}
 
 ## Quick Teleport
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 18px 0;">
@@ -93,10 +162,11 @@ This table connects each project requirement to the closest matching CS111 topic
 
 
 {% capture challenge0 %}
-Run the functions example, then change the input values and add one more function call.
+Run the functions example, then add a new function that takes 2 parameters and combine its output with `greet`.
 {% endcapture %}
 
 {% capture code0 %}
+// Start simple, then create a second function with two parameters.
 function multiplyByTwo(number) {
   return number * 2;
 }
@@ -114,6 +184,7 @@ console.log(greet('Yiming'));
 %%js
 
 // CODE_RUNNER: Run the functions example, then change the input values and add one more function call.
+// Start simple, then create a second function with two parameters.
 function multiplyByTwo(number) {
   return number * 2;
 }
@@ -145,12 +216,13 @@ console.log(greet('Yiming'));
 
 
 {% capture challenge1 %}
-Run the arrays example, then add a new score and print the updated length.
+Run the arrays example, then add two scores, compute the average, and print the index of the largest score.
 {% endcapture %}
 
 {% capture code1 %}
 const scores = [4, 8, 12, 16];
 
+// Try pushing values, then calculate summary stats.
 console.log(scores[0]);
 console.log(scores[2]);
 console.log(scores.length);
@@ -160,9 +232,10 @@ console.log(scores.length);
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the arrays example, then add a new score and print the updated length.
+// CODE_RUNNER: Run the arrays example, then add two scores, compute the average, and print the index of the largest score.
 const scores = [4, 8, 12, 16];
 
+// Try pushing values, then calculate summary stats.
 console.log(scores[0]);
 console.log(scores[2]);
 console.log(scores.length);
@@ -187,7 +260,7 @@ console.log(scores.length);
 
 
 {% capture challenge2 %}
-Run the booleans example, then change one comparison so the output becomes false.
+Run the booleans example, then create a compound boolean using `&&` and `||` and explain why it is true or false.
 {% endcapture %}
 
 {% capture code2 %}
@@ -195,6 +268,7 @@ const passed = true;
 const hasHomework = false;
 const isGreater = 10 > 3;
 
+// Build at least one compound boolean expression below.
 console.log(passed);
 console.log(hasHomework);
 console.log(isGreater);
@@ -204,11 +278,12 @@ console.log(isGreater);
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the booleans example, then change one comparison so the output becomes false.
+// CODE_RUNNER: Run the booleans example, then create a compound boolean using && and || and explain why it is true or false.
 const passed = true;
 const hasHomework = false;
 const isGreater = 10 > 3;
 
+// Build at least one compound boolean expression below.
 console.log(passed);
 console.log(hasHomework);
 console.log(isGreater);
@@ -233,12 +308,13 @@ console.log(isGreater);
 
 
 {% capture challenge3 %}
-Run the conditional example, then change the value of total to test all three branches.
+Run the conditional example, then add a second variable (like `isMember`) and update the logic to use nested conditionals.
 {% endcapture %}
 
 {% capture code3 %}
 const total = 20;
 
+// Add another condition to make this branch logic more realistic.
 if (total > 15) {
   console.log('Large total');
 } else if (total === 15) {
@@ -252,9 +328,10 @@ if (total > 15) {
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the conditional example, then change the value of total to test all three branches.
+// CODE_RUNNER: Run the conditional example, then add a second variable (like isMember) and update the logic to use nested conditionals.
 const total = 20;
 
+// Add another condition to make this branch logic more realistic.
 if (total > 15) {
   console.log('Large total');
 } else if (total === 15) {
@@ -283,35 +360,43 @@ if (total > 15) {
 
 
 {% capture challenge4 %}
-Run the iteration example, then increase the loop limits to produce more output.
+Run the iteration example, then print only even values in one loop and add a running total in the other.
 {% endcapture %}
 
 {% capture code4 %}
+// Filter by condition inside loops instead of printing every value.
 for (let i = 0; i < 3; i++) {
   console.log('Loop count:', i);
 }
 
 let count = 0;
+let runningTotal = 0;
 while (count < 2) {
   console.log('While loop:', count);
+  runningTotal += count;
   count++;
 }
+console.log('Running total:', runningTotal);
 {% endcapture %}
 
 {% capture source4 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the iteration example, then increase the loop limits to produce more output.
+// CODE_RUNNER: Run the iteration example, then print only even values in one loop and add a running total in the other.
+// Filter by condition inside loops instead of printing every value.
 for (let i = 0; i < 3; i++) {
   console.log('Loop count:', i);
 }
 
 let count = 0;
+let runningTotal = 0;
 while (count < 2) {
   console.log('While loop:', count);
+  runningTotal += count;
   count++;
 }
+console.log('Running total:', runningTotal);
 ```
 {% endcapture %}
 
@@ -333,13 +418,14 @@ while (count < 2) {
 
 
 {% capture challenge5 %}
-Run the math example, then change the numbers and add a power calculation.
+Run the math example, then add a power calculation and a rounded decimal result from a division.
 {% endcapture %}
 
 {% capture code5 %}
 const a = 12;
 const b = 4;
 
+// Add one advanced operation (power or rounding) before logging.
 const addition = a + b;
 const subtraction = a - b;
 const multiplication = a * b;
@@ -359,10 +445,11 @@ console.log(groupedExpression);
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the math example, then change the numbers and add a power calculation.
+// CODE_RUNNER: Run the math example, then add a power calculation and a rounded decimal result from a division.
 const a = 12;
 const b = 4;
 
+// Add one advanced operation (power or rounding) before logging.
 const addition = a + b;
 const subtraction = a - b;
 const multiplication = a * b;
@@ -397,7 +484,7 @@ console.log(groupedExpression);
 
 
 {% capture challenge6 %}
-Run the class example, then create a second Student object with different data.
+Run the class example, then add a class method and use it on at least two Student objects.
 {% endcapture %}
 
 {% capture code6 %}
@@ -406,26 +493,40 @@ class Student {
     this.name = name;
     this.grade = grade;
   }
+
+  // Add more behavior here to make each object do something.
+  describe() {
+    return `${this.name} is in grade ${this.grade}.`;
+  }
 }
 
 const studentOne = new Student('Yiming', 10);
-console.log(studentOne);
+const studentTwo = new Student('Avery', 11);
+console.log(studentOne.describe());
+console.log(studentTwo.describe());
 {% endcapture %}
 
 {% capture source6 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the class example, then create a second Student object with different data.
+// CODE_RUNNER: Run the class example, then add a class method and use it on at least two Student objects.
 class Student {
   constructor(name, grade) {
     this.name = name;
     this.grade = grade;
   }
+
+  // Add more behavior here to make each object do something.
+  describe() {
+    return `${this.name} is in grade ${this.grade}.`;
+  }
 }
 
 const studentOne = new Student('Yiming', 10);
-console.log(studentOne);
+const studentTwo = new Student('Avery', 11);
+console.log(studentOne.describe());
+console.log(studentTwo.describe());
 ```
 {% endcapture %}
 
@@ -447,31 +548,37 @@ console.log(studentOne);
 
 
 {% capture challenge7 %}
-Run the variables example, then change the score update to use a different amount.
+Run the variables example, then apply at least three score updates and print the final result with a template literal.
 {% endcapture %}
 
 {% capture code7 %}
 const school = 'Del Norte';
 let score = 10;
 
+// Chain multiple updates to model state changes over time.
 score = score + 5;
+score = score - 2;
+score = score + 7;
 
 console.log(school);
-console.log(score);
+console.log(`Final score: ${score}`);
 {% endcapture %}
 
 {% capture source7 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the variables example, then change the score update to use a different amount.
+// CODE_RUNNER: Run the variables example, then apply at least three score updates and print the final result with a template literal.
 const school = 'Del Norte';
 let score = 10;
 
+// Chain multiple updates to model state changes over time.
 score = score + 5;
+score = score - 2;
+score = score + 7;
 
 console.log(school);
-console.log(score);
+console.log(`Final score: ${score}`);
 ```
 {% endcapture %}
 
@@ -493,7 +600,7 @@ console.log(score);
 
 
 {% capture challenge8 %}
-Run the constructor example, then make another Player with a different number of lives.
+Run the constructor example, then create two more players and compare which one has the most lives.
 {% endcapture %}
 
 {% capture code8 %}
@@ -505,14 +612,20 @@ class Player {
 }
 
 const playerOne = new Player('Alex', 3);
+const playerTwo = new Player('Jordan', 5);
+const playerThree = new Player('Riley', 4);
+
+// Compare object data instead of printing a single object.
+const topPlayer = [playerOne, playerTwo, playerThree].sort((a, b) => b.lives - a.lives)[0];
 console.log(`Player: ${playerOne.name}, Lives: ${playerOne.lives}`);
+console.log(`Top lives: ${topPlayer.name} (${topPlayer.lives})`);
 {% endcapture %}
 
 {% capture source8 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the constructor example, then make another Player with a different number of lives.
+// CODE_RUNNER: Run the constructor example, then create two more players and compare which one has the most lives.
 class Player {
   constructor(name, lives) {
     this.name = name;
@@ -521,7 +634,13 @@ class Player {
 }
 
 const playerOne = new Player('Alex', 3);
+const playerTwo = new Player('Jordan', 5);
+const playerThree = new Player('Riley', 4);
+
+// Compare object data instead of printing a single object.
+const topPlayer = [playerOne, playerTwo, playerThree].sort((a, b) => b.lives - a.lives)[0];
 console.log(`Player: ${playerOne.name}, Lives: ${playerOne.lives}`);
+console.log(`Top lives: ${topPlayer.name} (${topPlayer.lives})`);
 ```
 {% endcapture %}
 
@@ -543,7 +662,7 @@ console.log(`Player: ${playerOne.name}, Lives: ${playerOne.lives}`);
 
 
 {% capture challenge9 %}
-Run the methods example, then add a second method or create another profile object.
+Run the methods example, then add a second method and use it with at least two profile objects.
 {% endcapture %}
 
 {% capture code9 %}
@@ -555,17 +674,25 @@ class StudentProfile {
   introduce() {
     return `Hi, I am ${this.name}.`;
   }
+
+  // Add another method to show object behavior beyond introductions.
+  cheer(topic) {
+    return `${this.name} says: Let's study ${topic}!`;
+  }
 }
 
 const profile = new StudentProfile('Yiming');
+const profileTwo = new StudentProfile('Kai');
 console.log(profile.introduce());
+console.log(profile.cheer('arrays'));
+console.log(profileTwo.cheer('conditionals'));
 {% endcapture %}
 
 {% capture source9 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the methods example, then add a second method or create another profile object.
+// CODE_RUNNER: Run the methods example, then add a second method and use it with at least two profile objects.
 class StudentProfile {
   constructor(name) {
     this.name = name;
@@ -574,10 +701,18 @@ class StudentProfile {
   introduce() {
     return `Hi, I am ${this.name}.`;
   }
+
+  // Add another method to show object behavior beyond introductions.
+  cheer(topic) {
+    return `${this.name} says: Let's study ${topic}!`;
+  }
 }
 
 const profile = new StudentProfile('Yiming');
+const profileTwo = new StudentProfile('Kai');
 console.log(profile.introduce());
+console.log(profile.cheer('arrays'));
+console.log(profileTwo.cheer('conditionals'));
 ```
 {% endcapture %}
 
@@ -599,29 +734,35 @@ console.log(profile.introduce());
 
 
 {% capture challenge10 %}
-Run the strings example, then add one more string method like slice or includes.
+Run the strings example, then use at least two additional string methods and compare their outputs.
 {% endcapture %}
 
 {% capture code10 %}
 const schoolName = 'Del Norte High School';
 const mascot = 'Nighthawks';
 
+// Mix multiple string methods to inspect the same text in different ways.
 console.log(schoolName.toUpperCase());
 console.log(`Mascot: ${mascot}`);
 console.log(schoolName.length);
+console.log(schoolName.slice(0, 9));
+console.log(schoolName.includes('High'));
 {% endcapture %}
 
 {% capture source10 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the strings example, then add one more string method like slice or includes.
+// CODE_RUNNER: Run the strings example, then use at least two additional string methods and compare their outputs.
 const schoolName = 'Del Norte High School';
 const mascot = 'Nighthawks';
 
+// Mix multiple string methods to inspect the same text in different ways.
 console.log(schoolName.toUpperCase());
 console.log(`Mascot: ${mascot}`);
 console.log(schoolName.length);
+console.log(schoolName.slice(0, 9));
+console.log(schoolName.includes('High'));
 ```
 {% endcapture %}
 
@@ -643,37 +784,47 @@ console.log(schoolName.length);
 
 
 {% capture challenge11 %}
-Run the data abstraction example, then add another property or method to the project object.
+Run the data abstraction example, then add nested data (like a `milestones` array) and write a method that uses it.
 {% endcapture %}
 
 {% capture code11 %}
 const project = {
   title: 'Aquatic Adventure',
   topic: 'Game Design',
+  milestones: ['Prototype', 'Boss Fight', 'Polish'],
   summary() {
     return `${this.title} is about ${this.topic}.`;
+  },
+  nextMilestone() {
+    return `Next milestone: ${this.milestones[0]}`;
   }
 };
 
 console.log(project.title);
 console.log(project.summary());
+console.log(project.nextMilestone());
 {% endcapture %}
 
 {% capture source11 %}
 ```javascript
 %%js
 
-// CODE_RUNNER: Run the data abstraction example, then add another property or method to the project object.
+// CODE_RUNNER: Run the data abstraction example, then add nested data (like a milestones array) and write a method that uses it.
 const project = {
   title: 'Aquatic Adventure',
   topic: 'Game Design',
+  milestones: ['Prototype', 'Boss Fight', 'Polish'],
   summary() {
     return `${this.title} is about ${this.topic}.`;
+  },
+  nextMilestone() {
+    return `Next milestone: ${this.milestones[0]}`;
   }
 };
 
 console.log(project.title);
 console.log(project.summary());
+console.log(project.nextMilestone());
 ```
 {% endcapture %}
 
@@ -1053,3 +1204,259 @@ rangedAttack: { row: 5, start: 0, columns: 5 }
 ```
 - Demonstrates table-driven animation design.
 - Different actions can use different frame counts, which prevents row bleed and wrong frame sampling.
+
+### Boss Topics Map (Megalodon + Mermaid)
+- **Functions:** Both bosses use dedicated functions for encounter start, combat updates, ability triggers, and theme-audio control.
+- **Classes/Constructors:** Bosses and guardians are created with constructor calls such as `new Npc(...)`.
+- **Methods:** Boss methods update HP, phases, attacks, and fight transitions over time.
+- **Variables:** Combat values like HP, cooldowns, timer stamps, and damage are stored in state variables.
+- **Booleans:** Flags such as `active`, `combatReady`, and phase unlock booleans gate what logic can run.
+- **Conditionals:** `if` branches choose ability behavior, trigger summons, and enforce phase thresholds.
+- **Iteration:** Repeated update loops and threshold checks process ongoing combat each frame.
+- **Arrays:** `gameObjects` and threshold/action lists hold multiple entities and trigger points.
+- **Mathematical Expressions:** Health-percentage math and `Date.now() + offset` timing expressions control pacing.
+- **Strings:** IDs, asset paths, and labels are represented with strings in config/state objects.
+- **Data Abstraction:** `bossState` and `mermaidBossState` group related data so each combat system stays organized.
+
+### Code Examples For Each Topic
+
+#### Functions
+```javascript
+const launchMermaidVolley = () => startMermaidBossAbility('volley');
+```
+
+#### Classes/Constructors
+```javascript
+const boss = new Npc(bossData, this.gameEnv);
+```
+
+#### Methods
+```javascript
+this.updateMermaidBossCombat();
+```
+
+#### Variables
+```javascript
+state.nextBombAt = Date.now() + 9500;
+```
+
+#### Booleans
+```javascript
+state.combatReady = true;
+```
+
+#### Conditionals
+```javascript
+if (state.hp <= state.maxHp * 0.1) {
+  spawnMermaidStarGuardians();
+}
+```
+
+#### Iteration
+```javascript
+thresholds.forEach((threshold) => {
+  if (this.bossState.hp <= this.bossState.maxHp * threshold) summonRushingSharks();
+});
+```
+
+#### Arrays
+```javascript
+this.gameEnv.gameObjects.push(guardian);
+```
+
+#### Mathematical Expressions
+```javascript
+const hpRatio = state.hp / state.maxHp;
+```
+
+#### Strings
+```javascript
+const bossMusic = path + '/assets/audio/Megalodon Boss Fight.mp3';
+```
+
+#### Data Abstraction
+```javascript
+const state = this.mermaidBossState;
+```
+
+### Complete Boss Ability Map With Topic Relationships
+
+## Megalodon Boss Abilities
+
+### 1) Laser Beam
+Code evidence:
+```javascript
+if (state.activeAbility === 'laser') {
+  commitLaser();
+}
+
+if (dLine < 20) {
+  applyPlayerDamage(42, playerX, playerY, 'laser');
+}
+```
+Topic relationship:
+- Functions/Methods: `commitLaser()` and beam update logic are split into reusable units.
+- Conditionals/Booleans: `state.activeAbility === 'laser'` gates when laser logic runs.
+- Math: segment distance math checks if the player intersects the beam.
+
+### 2) Rocket Barrage
+Code evidence:
+```javascript
+const rocketLaunches = [
+  { angle: targetAngle - 0.54, homing: 0, speed: 5.1 },
+  { angle: targetAngle - 0.18, homing: 0, speed: 5.5 },
+  { angle: targetAngle + 0.16, homing: 0.09, speed: 5.2 },
+  { angle: targetAngle + 0.48, homing: 0, speed: 4.9 }
+];
+
+applyPlayerDamage(p.type === 'rocket' ? 34 : 28, playerX, playerY, 'rocket');
+```
+Topic relationship:
+- Arrays/Iteration: `rocketLaunches` is iterated to spawn a multi-rocket pattern.
+- Variables: per-rocket `speed`, `angle`, and `homing` tune behavior.
+- Conditionals: damage branch depends on projectile type.
+
+### 3) Body Swing Shockwave
+Code evidence:
+```javascript
+if (dist < 130) {
+  applyPlayerDamage(48, px, py);
+}
+```
+Topic relationship:
+- Conditionals: range check decides whether damage is applied.
+- Math expressions: distance to player is computed with `Math.hypot`.
+- Methods: committed through `commitBodySwing()` during the attack timeline.
+
+### 4) Rushing Shark Summons
+Code evidence:
+```javascript
+if (this.bossState.hp <= this.bossState.maxHp * threshold) {
+  summonRushingSharks(threshold > 0.5 ? 2 : 4);
+}
+
+if (this.bossState.hp <= this.bossState.maxHp * 0.1) {
+  summonRushingSharks(1);
+}
+```
+Topic relationship:
+- Iteration: thresholds are checked in a loop.
+- Conditionals/Booleans: each threshold triggers only once via tracking array.
+- Data abstraction: summon objects are stored in `bossState.summons`.
+
+### 5) Weakened Megalodon Add
+Code evidence:
+```javascript
+if (this.bossState.hp <= this.bossState.maxHp * 0.25) {
+  summonWeakenedMegalodon();
+}
+```
+Topic relationship:
+- Classes/Constructors: `new Npc(minionData, this.gameEnv)` creates the add.
+- Variables: HP threshold controls phase transition.
+- Strings: spawned unit id uses a string template.
+
+### 6) Orb Combat System (Boss-Phase Utility Ability)
+Code evidence:
+```javascript
+if (Date.now() >= this.bossState.nextOrbSpawnAt) {
+  spawnCombatOrb();
+  this.bossState.nextOrbSpawnAt = Date.now() + 10000;
+}
+```
+Topic relationship:
+- Data abstraction: orb definitions and buff flags are grouped in structured objects.
+- Functions/Methods: orb spawn, activation, aura sync, and announcements are modular.
+- Mathematical expressions: timer arithmetic schedules recurring spawns.
+
+## Mermaid Boss Abilities
+
+### 1) Rocket Volley
+Code evidence:
+```javascript
+if (state.volleyShotsRemaining > 0 && now >= state.nextVolleyShotAt) {
+  commitMermaidRockets();
+  state.volleyShotsRemaining -= 1;
+}
+
+applyPlayerDamage(34, px, py, 'rocket');
+```
+Topic relationship:
+- Iteration over time: repeated timed shots create a volley pattern.
+- Variables: `volleySize`, `shotIntervalMs`, and cooldown fields shape behavior.
+- Conditionals: fire only when timers and counters permit.
+
+### 2) Bomb Rain and Explosion
+Code evidence:
+```javascript
+if (state.activeAbility === 'bombs' && !state.abilityCommitted) {
+  spawnMermaidBombs();
+}
+
+if (toPlayerBomb < bomb.size * 0.92) {
+  applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.22), bomb.x, bomb.y, 'bomb');
+}
+```
+Topic relationship:
+- Arrays/Iteration: bombs are tracked and updated in `state.bombs` each frame.
+- Math: explosion radius and HP-percent damage are numeric calculations.
+- Conditionals/Booleans: commit flags prevent duplicate spawns during one cast.
+
+### 3) Star Guardian Summon
+Code evidence:
+```javascript
+if (state.activeAbility === 'summon' && !state.abilityCommitted) {
+  spawnMermaidStarGuardians();
+}
+
+applyPlayerDamage(summon.damage, px, py, 'guardian');
+```
+Topic relationship:
+- Classes/Constructors: guardians are created using `new Npc(guardianData, this.gameEnv)`.
+- Arrays: guardians are registered in `gameObjects` and `state.summons`.
+- Conditionals: summon unlock is phase-gated and cooldown-gated.
+
+### 4) Super Laser
+Code evidence:
+```javascript
+if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
+  startMermaidBossAbility('laser', state.laserChargeMs);
+}
+
+if (hitDistance < 30) {
+  applyPlayerDamage(this.bossState.playerHp, px, py, 'superLaser');
+}
+```
+Topic relationship:
+- Booleans/Conditionals: requires multiple phase flags before activation.
+- Math: line-segment hit testing determines whether player is hit.
+- Variables: charge time and cooldown values tune the attack.
+
+### 5) Assault Dash
+Code evidence:
+```javascript
+if (state.activeAbility === 'assault') {
+  boss.position.x += normalizedX * assaultSpeed;
+  boss.position.y += normalizedY * assaultSpeed;
+}
+
+if (collisionDistance < 118) {
+  applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.5), px, py, 'assault');
+}
+```
+Topic relationship:
+- Mathematical expressions: normalized vectors produce dash movement.
+- Variables: `assaultSpeed`, collision range, and duration shape execution.
+- Conditionals: hit logic and end-of-ability timing are branch-driven.
+
+## Phase Relationships (Why Abilities Unlock When They Do)
+Code evidence:
+```javascript
+state.phaseTwoUnlocked = state.hp <= state.maxHp * 0.5;
+state.phaseThreeUnlocked = state.hp <= state.maxHp * 0.3;
+state.phaseFourUnlocked = state.hp <= state.maxHp * 0.1;
+```
+Topic relationship:
+- Variables + Math + Booleans: HP ratios become boolean phase states.
+- Conditionals: these booleans gate bombs, laser, summon, and assault availability.
+- Data abstraction: all phase and cooldown fields live in `mermaidBossState` and `bossState`.

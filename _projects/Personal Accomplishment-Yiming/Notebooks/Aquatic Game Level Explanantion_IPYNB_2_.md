@@ -43,28 +43,6 @@ The notebook page now references the same named assets you listed, using site-se
 
 
 
-{% capture challenge0 %}
-Run the real aquatic level from the project source file.
-{% endcapture %}
-
-{% capture code0 %}
-import GameControl from '/assets/js/GameEnginev1/essentials/GameControl.js';
-import GameLevelAquaticGameLevel from '/assets/js/GameEnginev1/GameLevelAquaticGameLevel.js';
-
-export const gameLevelClasses = [GameLevelAquaticGameLevel];
-export { GameControl };
-{% endcapture %}
-
-{% include runners/game.html
-   runner_id="personal-accomplishment-yiming-aquatic-game-level-explanation-0"
-   challenge=challenge0
-   code=code0
-   hide_edit="true"
-   width="100%"
-   height="620px"
-%}
-
-
 ## Functions
 Functions are reusable blocks of code, and this file uses them to control game behavior. For example, NPC `interact` functions decide what happens when the player talks to a character, and helper functions like `showStoryStep` move the dialogue from one part of the story to the next.
 Functions make the game easier to organize because each behavior has its own job instead of placing all logic in one huge block.

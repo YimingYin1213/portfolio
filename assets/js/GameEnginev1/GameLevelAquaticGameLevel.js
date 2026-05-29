@@ -102,11 +102,25 @@ class GameLevelAquaticGameLevel {
         const selectedAquaticSprite = aquaticSpriteOptions.find((option) => option.key === localStorage.getItem(aquaticSpriteStorageKey))
             || aquaticSpriteOptions[0];
         const menuMegalodonSpriteSrc = assetPath + '/megalodon.png';
-        const mermaidBossSpriteSrc = assetPath + '/Mermaid Boss.png';
+        const mermaidBossIdleSpriteSrc = assetPath + '/Mermaid Boss Idle.png';
+        const mermaidBossRocketSpriteSrc = assetPath + '/Mermaid Boss Rocket Shooting.png';
+        const mermaidBossAssaultSpriteSrc = assetPath + '/Mermaid Boss Assaulting.png';
+        const mermaidBombingSpriteSrc = assetPath + '/Mermaid Bombing.png';
+        const mermaidBossLaserSpriteSrc = assetPath + '/Mermaid Lasering.png';
+        const mermaidBossDashSpriteSrc = assetPath + '/Mermaid Dashing.png';
         const defeatedMermaidBossSpriteSrc = assetPath + '/Defeated Mermaid Boss.png';
         const mermaidRocketSpriteSrc = assetPath + '/Mermaid Rocket.png';
         const mermaidBombSpriteSrc = assetPath + '/Bomb Explodes.png';
         const starfishGuardianSpriteSrc = assetPath + '/Starfish Guardian.png';
+
+        const mermaidBossSpriteSheets = {
+            idle: { src: mermaidBossIdleSpriteSrc, pixels: { width: 940, height: 192 }, orientation: { rows: 1, columns: 6 }, sourcePadLeft: 5, sourcePadRight: 1 },
+            rocket: { src: mermaidBossRocketSpriteSrc, pixels: { width: 947, height: 178 }, orientation: { rows: 1, columns: 6 }, sourcePadLeft: 6, sourcePadRight: 2 },
+            assault: { src: mermaidBossAssaultSpriteSrc, pixels: { width: 932, height: 111 }, orientation: { rows: 1, columns: 5 }, sourcePadLeft: 5, sourcePadRight: 1 },
+            bombing: { src: mermaidBombingSpriteSrc, pixels: { width: 942, height: 158 }, orientation: { rows: 1, columns: 6 }, sourcePadLeft: 5, sourcePadRight: 1 },
+            laser: { src: mermaidBossLaserSpriteSrc, pixels: { width: 947, height: 148 }, orientation: { rows: 1, columns: 6 }, sourcePadLeft: 6, sourcePadRight: 2 },
+            dash: { src: mermaidBossDashSpriteSrc, pixels: { width: 945, height: 129 }, orientation: { rows: 1, columns: 6 }, sourcePadLeft: 5, sourcePadRight: 1 }
+        };
 
         const bgData = {
             name: "custom_bg",
@@ -529,8 +543,8 @@ class GameLevelAquaticGameLevel {
             introPlayed: false,
             combatReady: false,
             boss: null,
-            hp: 2800,
-            maxHp: 2800,
+            hp: 2200,
+            maxHp: 2200,
             projectiles: [],
             enemyProjectiles: [],
             bombs: [],
@@ -551,9 +565,12 @@ class GameLevelAquaticGameLevel {
             laserCooldownMs: 30000,
             assaultDurationMs: 3000,
             laserChargeMs: 5000,
+            assaultVectorX: 0,
+            assaultVectorY: 0,
             phaseTwoUnlocked: false,
             phaseThreeUnlocked: false,
             phaseFourUnlocked: false,
+            phaseTwoBombPrimed: false,
             defeated: false,
             deathCleanupAt: 0,
             activeAbility: null,
@@ -3391,6 +3408,31 @@ class GameLevelAquaticGameLevel {
             }
         };
 
+        const applyMermaidBossVisualState = (visualState) => {
+            const state = this.mermaidBossState;
+            if (!state) return;
+            const boss = getMermaidBossEntity();
+            if (!boss) return;
+            const selectedState = mermaidBossSpriteSheets[visualState] ? visualState : 'idle';
+            if (state.currentVisualState === selectedState) return;
+
+            const sheet = mermaidBossSpriteSheets[selectedState];
+            setMermaidBossSpriteSheet(sheet.src, sheet.pixels, sheet.orientation);
+            boss.spriteData.sourcePadLeft = Math.max(0, Math.round(sheet.sourcePadLeft || 0));
+            boss.spriteData.sourcePadRight = Math.max(0, Math.round(sheet.sourcePadRight || 0));
+            state.currentVisualState = selectedState;
+        };
+
+        const setMermaidDirectionalFacing = (boss, vx, mode = 'dash') => {
+            if (!boss) return;
+            const rightward = vx >= 0;
+            if (mode === 'assault') {
+                boss.direction = rightward ? 'assaultRight' : 'assaultLeft';
+                return;
+            }
+            boss.direction = rightward ? 'right' : 'left';
+        };
+
         const startMermaidBossAbility = (abilityName, durationMs) => {
             const state = this.mermaidBossState;
             state.activeAbility = abilityName;
@@ -3400,16 +3442,38 @@ class GameLevelAquaticGameLevel {
             if (!boss) return;
 
             if (abilityName === 'assault') {
-                boss.direction = 'assault';
+                setMermaidDirectionalFacing(boss, state.assaultVectorX || 1, 'assault');
+                applyMermaidBossVisualState('assault');
+                boss.frameIndex = 0;
+                const player = getPlayer();
+                if (player?.position && boss?.position) {
+                    const px = player.position.x + player.width * 0.5;
+                    const py = player.position.y + player.height * 0.5;
+                    const bx = boss.position.x + boss.width * 0.5;
+                    const by = boss.position.y + boss.height * 0.5;
+                    const dx = px - bx;
+                    const dy = py - by;
+                    const mag = Math.max(1, Math.hypot(dx, dy));
+                    state.assaultVectorX = dx / mag;
+                    state.assaultVectorY = dy / mag;
+                    setMermaidDirectionalFacing(boss, state.assaultVectorX, 'assault');
+                } else {
+                    state.assaultVectorX = 1;
+                    state.assaultVectorY = 0;
+                    setMermaidDirectionalFacing(boss, state.assaultVectorX, 'assault');
+                }
                 state.nextAssaultAt = Date.now() + state.assaultCooldownMs;
             } else if (abilityName === 'bombs') {
-                boss.direction = 'bombs';
+                setMermaidDirectionalFacing(boss, 1, 'bombing');
+                applyMermaidBossVisualState('bombing');
                 state.nextBombAt = Date.now() + state.bombCooldownMs;
             } else if (abilityName === 'summon') {
-                boss.direction = 'bombs';
+                setMermaidDirectionalFacing(boss, 1, 'dash');
+                applyMermaidBossVisualState('dash');
                 state.nextSummonAt = Date.now() + state.summonCooldownMs;
             } else if (abilityName === 'laser') {
                 boss.direction = 'laser';
+                applyMermaidBossVisualState('laser');
                 state.nextLaserAt = Date.now() + state.laserCooldownMs;
                 state.laserChargeStartAt = Date.now();
                 state.laserBeam = null;
@@ -3438,7 +3502,7 @@ class GameLevelAquaticGameLevel {
             state.laserBeam = null;
 
             const boss = state.boss;
-            setMermaidBossSpriteSheet(defeatedMermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 4, columns: 6 });
+            setMermaidBossSpriteSheet(defeatedMermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 6, columns: 6 });
             boss.direction = 'defeated';
             boss.frameIndex = 0;
             boss.frameCounter = 0;
@@ -3449,6 +3513,11 @@ class GameLevelAquaticGameLevel {
 
         const spawnMermaidBombExplosion = (x, y, scale = 1) => {
             const frameSize = Math.round(112 * scale);
+            const explosionFrameSequence = [
+                { row: 3, column: 0 }, { row: 3, column: 1 }, { row: 3, column: 2 }, { row: 3, column: 3 },
+                { row: 4, column: 0 }, { row: 4, column: 1 }, { row: 4, column: 2 }, { row: 4, column: 3 },
+                { row: 5, column: 0 }, { row: 5, column: 1 }, { row: 5, column: 2 }, { row: 5, column: 3 }
+            ];
             const explosion = document.createElement('div');
             Object.assign(explosion.style, {
                 position: 'absolute',
@@ -3457,7 +3526,7 @@ class GameLevelAquaticGameLevel {
                 width: `${frameSize}px`,
                 height: `${frameSize}px`,
                 pointerEvents: 'none',
-                zIndex: '10069',
+                zIndex: '10132',
                 imageRendering: 'pixelated',
                 backgroundImage: `url(${mermaidBombSpriteSrc})`,
                 backgroundRepeat: 'no-repeat',
@@ -3468,21 +3537,19 @@ class GameLevelAquaticGameLevel {
             });
             appendBossOverlay(explosion);
 
-            const totalFrames = 12;
             let frame = 0;
+            const totalFrames = explosionFrameSequence.length;
             const explode = () => {
                 if (frame >= totalFrames) {
                     explosion.remove();
                     return;
                 }
-
-                const phaseRow = frame < 6 ? Math.min(2, Math.floor(frame / 2)) : 3 + Math.min(2, Math.floor((frame - 6) / 2));
-                const phaseColumn = frame % 4;
-                explosion.style.backgroundPosition = `-${phaseColumn * frameSize}px -${phaseRow * frameSize}px`;
-                explosion.style.transform = `translate(-50%, -50%) scale(${0.72 + frame * 0.06})`;
-                explosion.style.opacity = `${Math.max(0, 1 - frame * 0.085)}`;
+                const phase = explosionFrameSequence[frame];
+                explosion.style.backgroundPosition = `-${phase.column * frameSize}px -${phase.row * frameSize}px`;
+                explosion.style.transform = `translate(-50%, -50%) scale(${0.86 + frame * 0.07})`;
+                explosion.style.opacity = `${Math.max(0, 1 - frame * 0.07)}`;
                 frame += 1;
-                setTimeout(explode, 90);
+                setTimeout(explode, 120);
             };
             explode();
         };
@@ -3494,16 +3561,16 @@ class GameLevelAquaticGameLevel {
 
             const lowHealth = state.hp <= state.maxHp * 0.15;
             const bombCount = lowHealth ? 2 + Math.floor(Math.random() * 3) : 1 + Math.floor(Math.random() * 3);
-            const baseSize = lowHealth ? 126 : 104;
+            const baseSize = lowHealth ? 164 : 136;
             const startY = Math.max(40, state.boss.position.y + state.boss.height * 0.35);
 
             for (let i = 0; i < bombCount; i += 1) {
                 const bomb = document.createElement('div');
                 const x = Math.max(50, Math.min(this.gameEnv.innerWidth - 50, Math.random() * this.gameEnv.innerWidth));
                 const y = Math.max(10, startY - (i * 30));
-                const fallSpeed = 2.4 + Math.random() * 0.8;
-                const sidePush = (Math.random() - 0.5) * 0.9;
-                const size = baseSize * (lowHealth ? 1.18 : 1);
+                const fallSpeed = 0;
+                const sidePush = (Math.random() - 0.5) * 0.45;
+                const size = baseSize * (lowHealth ? 1.28 : 1.08);
 
                 Object.assign(bomb.style, {
                     position: 'absolute',
@@ -3512,13 +3579,13 @@ class GameLevelAquaticGameLevel {
                     width: `${size}px`,
                     height: `${size}px`,
                     pointerEvents: 'none',
-                    zIndex: '10068',
+                    zIndex: '10130',
                     imageRendering: 'pixelated',
                     backgroundImage: `url(${mermaidBombSpriteSrc})`,
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '400% 600%',
                     transform: 'translate(-50%, -50%)',
-                    filter: 'drop-shadow(0 0 12px rgba(255, 176, 81, 0.35))'
+                    filter: 'brightness(1.35) saturate(1.25) drop-shadow(0 0 30px rgba(196, 108, 255, 0.85))'
                 });
                 appendBossOverlay(bomb);
 
@@ -3531,7 +3598,7 @@ class GameLevelAquaticGameLevel {
                     age: 0,
                     phase: 'drop',
                     explodeStartedAt: 0,
-                    explodeDelayMs: 2000,
+                    explodeDelayMs: 2800,
                     size,
                     lowHealth
                 });
@@ -3590,10 +3657,20 @@ class GameLevelAquaticGameLevel {
                     orientation: { rows: 6, columns: 6 },
                     idle: { row: 0, start: 0, columns: 6 },
                     walk: { row: 1, start: 0, columns: 6 },
+                    walkLeft: { row: 1, start: 0, columns: 6 },
+                    walkRight: { row: 1, start: 0, columns: 6, mirror: true },
                     sprint: { row: 2, start: 0, columns: 6 },
+                    sprintLeft: { row: 2, start: 0, columns: 6 },
+                    sprintRight: { row: 2, start: 0, columns: 6, mirror: true },
                     sprintAlt: { row: 3, start: 0, columns: 6 },
+                    sprintAltLeft: { row: 3, start: 0, columns: 6 },
+                    sprintAltRight: { row: 3, start: 0, columns: 6, mirror: true },
                     attack: { row: 4, start: 0, columns: 5 },
+                    attackLeft: { row: 4, start: 0, columns: 5 },
+                    attackRight: { row: 4, start: 0, columns: 5, mirror: true },
                     rangedAttack: { row: 5, start: 0, columns: 5 },
+                    rangedAttackLeft: { row: 5, start: 0, columns: 5 },
+                    rangedAttackRight: { row: 5, start: 0, columns: 5, mirror: true },
                     down: { row: 0, start: 0, columns: 6 },
                     right: { row: 1, start: 0, columns: 6, mirror: true },
                     left: { row: 1, start: 0, columns: 6 },
@@ -3607,11 +3684,11 @@ class GameLevelAquaticGameLevel {
                 state.summons.push({
                     obj: guardian,
                     kind: 'mermaidGuardian',
-                    hp: 240,
-                    speed: 1.75 + Math.random() * 0.35,
-                    damage: 20,
-                    contactRange: 62,
-                    contactCooldownMs: 850,
+                    hp: 120,
+                    speed: 1.15 + Math.random() * 0.2,
+                    damage: 10,
+                    contactRange: 48,
+                    contactCooldownMs: 1400,
                     lastHitAt: 0,
                     attackWindowUntil: 0
                 });
@@ -3785,14 +3862,20 @@ class GameLevelAquaticGameLevel {
                 return;
             }
 
-            state.phaseTwoUnlocked = state.hp <= state.maxHp * 0.5;
+            state.phaseTwoUnlocked = state.hp <= state.maxHp * 0.75;
             state.phaseThreeUnlocked = state.hp <= state.maxHp * 0.15;
             state.phaseFourUnlocked = state.hp <= state.maxHp * 0.1;
-            state.assaultCooldownMs = state.phaseThreeUnlocked ? 15000 : 20000;
+            state.assaultCooldownMs = state.phaseThreeUnlocked ? 19000 : 24000;
+            state.bombCooldownMs = state.hp <= state.maxHp * 0.5 ? 2600 : 5200;
             state.summonCooldownMs = state.phaseFourUnlocked ? 25000 : 45000;
 
+            if (state.phaseTwoUnlocked && !state.phaseTwoBombPrimed) {
+                state.phaseTwoBombPrimed = true;
+                state.nextBombAt = Math.min(state.nextBombAt || Number.MAX_SAFE_INTEGER, now + 1500);
+            }
+
             if (!state.nextVolleyReadyAt) state.nextVolleyReadyAt = now + 1100;
-            if (!state.nextBombAt) state.nextBombAt = now + 8000;
+            if (!state.nextBombAt) state.nextBombAt = now + 2200;
             if (!state.nextSummonAt) state.nextSummonAt = now + 12000;
             if (!state.nextAssaultAt) state.nextAssaultAt = now + 5000;
             if (!state.nextLaserAt) state.nextLaserAt = now + 16000;
@@ -3821,6 +3904,12 @@ class GameLevelAquaticGameLevel {
             const normalizedY = toPlayerY / toPlayerMag;
             const orbitX = -normalizedY;
             const orbitY = normalizedX;
+
+            // Keep Mermaid visually facing the player whenever possible.
+            const facingMode = state.activeAbility === 'assault'
+                ? 'assault'
+                : (state.activeAbility === 'bombs' ? 'bombing' : 'dash');
+            setMermaidDirectionalFacing(boss, toPlayerX, facingMode);
 
             const updateRocketList = (projectiles, targetType) => {
                 return projectiles.filter((projectile) => {
@@ -3855,7 +3944,7 @@ class GameLevelAquaticGameLevel {
                         if (distToBoss < 88) {
                             if (projectile.element) projectile.element.remove();
                             spawnPixelExplosion(projectile.x, projectile.y, '#fff7aa', '#ff9a46', '#ff5f31');
-                            applyMermaidBossDamage(24, projectile.x, projectile.y);
+                            applyMermaidBossDamage(36, projectile.x, projectile.y);
                             return false;
                         }
                     } else {
@@ -3933,7 +4022,7 @@ class GameLevelAquaticGameLevel {
                     const summon = state.summons[hitSummon];
                     const sx = (summon.obj?.position?.x || projectile.x) + (summon.obj?.width || 0) * 0.5;
                     const sy = (summon.obj?.position?.y || projectile.y) + (summon.obj?.height || 0) * 0.5;
-                    const attack = consumePlayerAttackDamage(projectile.baseDamage || 9, { allowCrit: !!projectile.shotCritical });
+                    const attack = consumePlayerAttackDamage(projectile.baseDamage || 14, { allowCrit: !!projectile.shotCritical });
                     spawnHitEffect(sx, sy, '#ffd18a');
                     summon.hp = Math.max(0, (summon.hp ?? 1) - attack.damage);
                     if (summon.obj?.canvas) {
@@ -3976,7 +4065,7 @@ class GameLevelAquaticGameLevel {
             });
 
             state.bombs = state.bombs.filter((bomb) => {
-                bomb.age += 16;
+                bomb.age += 10;
                 bomb.x += bomb.vx;
                 bomb.y += bomb.vy;
 
@@ -3994,15 +4083,16 @@ class GameLevelAquaticGameLevel {
                 }
 
                 if (isDropping) {
-                    const row = Math.min(2, Math.floor(bomb.age / 700));
-                    const column = Math.min(3, Math.floor((bomb.age / 140) % 4));
                     if (bomb.element) {
-                        bomb.element.style.backgroundPosition = `-${column * frameWidth}px -${row * frameHeight}px`;
-                        bomb.element.style.transform = `translate(-50%, -50%) rotate(${Math.sin(bomb.age * 0.02) * 2}deg)`;
+                        const dropFrame = { row: 3, column: 2 };
+                        bomb.element.style.backgroundPosition = `-${dropFrame.column * frameWidth}px -${dropFrame.row * frameHeight}px`;
+                        bomb.element.style.transform = `translate(-50%, -50%) rotate(${Math.sin(bomb.age * 0.01) * 2}deg) scale(1.2)`;
                     }
 
                     const toPlayerBomb = Math.hypot(px - bomb.x, py - bomb.y);
-                    const shouldExplode = bomb.age >= bomb.explodeDelayMs || toPlayerBomb < bomb.size * 0.75 || bomb.y >= this.gameEnv.innerHeight - bomb.size * 0.7;
+                    const minVisibleDropMs = 460;
+                    const canProximityExplode = bomb.age >= minVisibleDropMs;
+                    const shouldExplode = bomb.age >= bomb.explodeDelayMs || (canProximityExplode && toPlayerBomb < bomb.size * 0.75);
                     if (shouldExplode) {
                         bomb.phase = 'boom';
                         bomb.explodeStartedAt = now;
@@ -4018,17 +4108,14 @@ class GameLevelAquaticGameLevel {
 
                 if (!bomb.explodeStartedAt) bomb.explodeStartedAt = now;
                 const explodeAge = now - bomb.explodeStartedAt;
-                const row = 3 + Math.min(2, Math.floor(explodeAge / 160));
-                const column = Math.min(3, Math.floor((explodeAge / 95) % 4));
-                const scale = lowHealth ? 1.2 + Math.min(0.35, explodeAge / 2200) : 1 + Math.min(0.2, explodeAge / 2600);
+                const scale = lowHealth ? 1.32 + Math.min(0.42, explodeAge / 2600) : 1.18 + Math.min(0.28, explodeAge / 3000);
 
                 if (bomb.element) {
-                    bomb.element.style.backgroundPosition = `-${column * frameWidth}px -${row * frameHeight}px`;
                     bomb.element.style.transform = `translate(-50%, -50%) scale(${scale})`;
-                    bomb.element.style.opacity = `${Math.max(0, 1 - explodeAge / 820)}`;
+                    bomb.element.style.opacity = `${Math.max(0, 1 - explodeAge / 980)}`;
                 }
 
-                if (explodeAge >= 820) {
+                if (explodeAge >= 980) {
                     if (bomb.element) bomb.element.remove();
                     return false;
                 }
@@ -4055,14 +4142,17 @@ class GameLevelAquaticGameLevel {
                 if (dist > summon.contactRange) {
                     obj.position.x += moveX;
                     obj.position.y += moveY;
+                    const faceRight = dx >= 0;
                     obj.direction = dist > 220
-                        ? 'rangedAttack'
+                        ? (faceRight ? 'rangedAttackRight' : 'rangedAttackLeft')
                         : (dist > 150
-                            ? (summon.speed > 1.9 ? 'sprint' : 'walk')
-                            : 'sprintAlt');
+                            ? (summon.speed > 1.9
+                                ? (faceRight ? 'sprintRight' : 'sprintLeft')
+                                : (faceRight ? 'walkRight' : 'walkLeft'))
+                            : (faceRight ? 'sprintAltRight' : 'sprintAltLeft'));
                     obj.canvas.style.filter = 'brightness(1.02) saturate(1.04)';
                 } else {
-                    obj.direction = 'attack';
+                    obj.direction = dx >= 0 ? 'attackRight' : 'attackLeft';
                     if (now - (summon.lastHitAt || 0) >= summon.contactCooldownMs) {
                         applyPlayerDamage(summon.damage, px, py, 'guardian');
                         summon.lastHitAt = now;
@@ -4071,21 +4161,39 @@ class GameLevelAquaticGameLevel {
                 }
 
                 if (dist < 120 && state.activeAbility !== 'summon') {
-                    obj.direction = 'attack';
+                    obj.direction = dx >= 0 ? 'attackRight' : 'attackLeft';
                 }
 
                 return true;
             });
 
+            let mermaidVisualState = 'idle';
+            if (state.activeAbility === 'laser') {
+                mermaidVisualState = 'laser';
+            } else if (state.activeAbility === 'assault') {
+                mermaidVisualState = 'assault';
+            } else if (state.activeAbility === 'bombs') {
+                mermaidVisualState = 'bombing';
+            } else if (state.activeAbility === 'summon') {
+                mermaidVisualState = 'dash';
+            } else if (state.volleyShotsRemaining > 0) {
+                mermaidVisualState = 'rocket';
+            } else if (state.phaseTwoUnlocked) {
+                mermaidVisualState = 'dash';
+            }
+            applyMermaidBossVisualState(mermaidVisualState);
+
             if (state.activeAbility === 'assault') {
-                boss.direction = 'assault';
-                const assaultSpeed = 8.3;
-                boss.position.x += normalizedX * assaultSpeed;
-                boss.position.y += normalizedY * assaultSpeed;
+                const assaultSpeed = 5.4;
+                const dashX = state.assaultVectorX || normalizedX;
+                const dashY = state.assaultVectorY || normalizedY;
+                setMermaidDirectionalFacing(boss, dashX, 'assault');
+                boss.position.x += dashX * assaultSpeed;
+                boss.position.y += dashY * assaultSpeed;
 
                 const collisionDistance = Math.hypot((boss.position.x + boss.width * 0.5) - px, (boss.position.y + boss.height * 0.5) - py);
-                if (collisionDistance < 118) {
-                    applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.5), px, py, 'assault');
+                if (collisionDistance < 84) {
+                    applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.24), px, py, 'assault');
                     state.activeAbility = null;
                     state.abilityCommitted = false;
                     state.abilityEndsAt = 0;
@@ -4129,26 +4237,29 @@ class GameLevelAquaticGameLevel {
             } else {
                 const isLowPhase = state.phaseTwoUnlocked;
                 if (isLowPhase) {
-                    boss.direction = 'slowMove';
                     const desiredDistance = state.phaseThreeUnlocked ? 150 : 176;
                     const desiredCenterX = playerX - normalizedX * desiredDistance + orbitX * 22;
                     const desiredCenterY = playerY - normalizedY * desiredDistance + orbitY * 18;
                     const clampedCenterX = Math.max(boss.width * 0.55, Math.min(this.gameEnv.innerWidth - boss.width * 0.55, desiredCenterX));
-                    const clampedCenterY = Math.max(boss.height * 0.55, Math.min(this.gameEnv.innerHeight - boss.height * 0.55, desiredCenterY));
-                    boss.position.x += (clampedCenterX - bx) * 0.01;
-                    boss.position.y += (clampedCenterY - by) * 0.01;
+                    const clampedCenterY = Math.max(boss.height * 0.55, Math.min(this.gameEnv.innerHeight - boss.height * 0.68, desiredCenterY));
+                    const travelX = clampedCenterX - bx;
+                    boss.position.x += travelX * 0.03;
+                    boss.position.y += (clampedCenterY - by) * 0.03;
+                    setMermaidDirectionalFacing(boss, travelX, 'dash');
                 } else {
                     boss.direction = 'down';
                 }
             }
 
             if (!state.activeAbility) {
-                if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
+                if (state.hp <= state.maxHp * 0.5 && state.phaseTwoUnlocked && now >= state.nextBombAt) {
+                    startMermaidBossAbility('bombs', 1400);
+                } else if (state.phaseTwoUnlocked && now >= state.nextBombAt) {
+                    startMermaidBossAbility('bombs', 900);
+                } else if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
                     startMermaidBossAbility('laser', state.laserChargeMs);
                     state.laserChargeStartAt = now;
-                } else if (state.phaseTwoUnlocked && now >= state.nextBombAt) {
-                    startMermaidBossAbility('bombs', 520);
-                } else if (state.phaseTwoUnlocked && now >= state.nextSummonAt) {
+                } else if (state.phaseFourUnlocked && now >= state.nextSummonAt) {
                     startMermaidBossAbility('summon', 520);
                 } else if (state.phaseTwoUnlocked && now >= state.nextAssaultAt) {
                     startMermaidBossAbility('assault', state.assaultDurationMs);
@@ -4206,15 +4317,20 @@ class GameLevelAquaticGameLevel {
             state.nextVolleyShotAt = Date.now() + 1400;
             state.nextVolleyReadyAt = Date.now() + 1200;
             state.nextAssaultAt = Date.now() + 6500;
-            state.nextBombAt = Date.now() + 9500;
+            state.nextBombAt = Date.now() + 2400;
             state.nextSummonAt = Date.now() + 13500;
             state.nextLaserAt = Date.now() + 22000;
             state.phaseTwoUnlocked = false;
             state.phaseThreeUnlocked = false;
             state.phaseFourUnlocked = false;
-            state.assaultCooldownMs = 20000;
+            state.phaseTwoBombPrimed = false;
+            state.assaultCooldownMs = 24000;
             state.bombCooldownMs = 15000;
             state.summonCooldownMs = 45000;
+            state.assaultDurationMs = 1700;
+            state.assaultVectorX = 0;
+            state.assaultVectorY = 0;
+            state.currentVisualState = null;
             if (state.laserBeam?.element) state.laserBeam.element.remove();
             state.laserBeam = null;
             state.projectiles.forEach((projectile) => projectile?.element?.remove());
@@ -4236,7 +4352,7 @@ class GameLevelAquaticGameLevel {
                 mermaid.position.y = -10000;
             }
 
-            setMermaidBossSpriteSheet(mermaidBossSpriteSrc, { width: 948, height: 948 }, { rows: 6, columns: 6 });
+            applyMermaidBossVisualState('idle');
             boss.direction = 'down';
             boss.frameIndex = 0;
             boss.frameCounter = 0;
@@ -6848,26 +6964,35 @@ class GameLevelAquaticGameLevel {
         const mermaidBossNpc = {
             id: 'MermaidBoss',
             greeting: false,
-            src: mermaidBossSpriteSrc,
-            SCALE_FACTOR: 7.2,
+            src: mermaidBossIdleSpriteSrc,
+            SCALE_FACTOR: 9.8,
             STEP_FACTOR: 0,
             ANIMATION_RATE: 14,
             INIT_POSITION: { x: -900, y: 260 },
-            pixels: { height: 948, width: 948 },
-            orientation: { rows: 6, columns: 6 },
+            pixels: { height: 192, width: 940 },
+            orientation: { rows: 1, columns: 6 },
             down: { row: 0, start: 0, columns: 6 },
-            right: { row: 2, start: 0, columns: 6, mirror: true },
-            left: { row: 2, start: 0, columns: 6 },
-            up: { row: 1, start: 0, columns: 6 },
-            upRight: { row: 2, start: 0, columns: 6, mirror: true },
+            right: { row: 0, start: 0, columns: 6, mirror: true },
+            left: { row: 0, start: 0, columns: 6 },
+            up: { row: 0, start: 0, columns: 6 },
+            upRight: { row: 0, start: 0, columns: 6, mirror: true },
             downRight: { row: 0, start: 0, columns: 6, mirror: true },
-            upLeft: { row: 2, start: 0, columns: 6 },
+            upLeft: { row: 0, start: 0, columns: 6 },
             downLeft: { row: 0, start: 0, columns: 6 },
-            slowMove: { row: 2, start: 0, columns: 6 },
-            assault: { row: 3, start: 0, columns: 6 },
-            bombs: { row: 4, start: 0, columns: 6 },
-            laser: { row: 5, start: 0, columns: 6 },
+            slowMove: { row: 0, start: 0, columns: 6 },
+            rocketAttack: { row: 0, start: 0, columns: 6 },
+            assault: { row: 0, start: 2, columns: 1 },
+            assaultLeft: { row: 0, start: 2, columns: 1 },
+            assaultRight: { row: 0, start: 2, columns: 1, mirror: true },
+            bombingLeft: { row: 0, start: 0, columns: 6 },
+            bombingRight: { row: 0, start: 0, columns: 6, mirror: true },
+            dashLeft: { row: 0, start: 0, columns: 6 },
+            dashRight: { row: 0, start: 0, columns: 6, mirror: true },
+            bombs: { row: 0, start: 0, columns: 6 },
+            laser: { row: 0, start: 0, columns: 6 },
             defeated: { row: 0, start: 0, columns: 6 },
+            sourcePadLeft: 5,
+            sourcePadRight: 1,
             hitbox: { widthPercentage: 0.14, heightPercentage: 0.22 },
             reaction: function() {},
             interact: function() {}

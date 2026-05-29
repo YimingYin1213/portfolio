@@ -218,13 +218,30 @@ class Character extends GameObject {
 
         // Calculate the frame position on the sprite sheet
         const directionData = this.spriteData[this.direction] || {};
-        const frameX = ((directionData.start || 0) + (this.frameIndex || 0)) * srcFrameWidth;
-        const frameY = (directionData.row || 0) * srcFrameHeight;
+        const frameColumn = (directionData.start || 0) + (this.frameIndex || 0);
+        const frameRow = directionData.row || 0;
+        // Use rounded frame boundaries to avoid cross-frame bleed on sheets whose size is not evenly divisible.
+        const frameLeft = Math.round((frameColumn * pixels.width) / columns);
+        const frameRight = Math.round(((frameColumn + 1) * pixels.width) / columns);
+        const frameTop = Math.round((frameRow * pixels.height) / rows);
+        const frameBottom = Math.round(((frameRow + 1) * pixels.height) / rows);
+        const frameX = frameLeft;
+        const frameY = frameTop;
+        const preciseFrameWidth = Math.max(1, frameRight - frameLeft);
+        const preciseFrameHeight = Math.max(1, frameBottom - frameTop);
+        const framePaddingBottom = Math.max(0, Math.round(directionData.padBottom ?? this.spriteData.padBottom ?? 0));
+        const sourcePadLeft = Math.max(0, Math.round(directionData.sourcePadLeft ?? this.spriteData.sourcePadLeft ?? 0));
+        const sourcePadRight = Math.max(0, Math.round(directionData.sourcePadRight ?? this.spriteData.sourcePadRight ?? 0));
+        const maxSourceHeight = Math.max(1, pixels.height - frameY);
+        const maxSourceWidth = Math.max(1, pixels.width - frameX);
+        const srcDrawWidth = Math.max(1, Math.min(maxSourceWidth, preciseFrameWidth - sourcePadLeft - sourcePadRight));
+        const srcDrawHeight = Math.max(1, Math.min(maxSourceHeight, preciseFrameHeight));
+        const destDrawHeight = Math.max(1, Math.round(srcDrawHeight));
 
         // Set the canvas dimensions based on the frame size
     // Set the canvas dimensions based on the frame size (integers)
-    this.canvas.width = Math.max(1, Math.round(srcFrameWidth));
-    this.canvas.height = Math.max(1, Math.round(srcFrameHeight));
+    this.canvas.width = Math.max(1, Math.round(srcDrawWidth));
+    this.canvas.height = Math.max(1, destDrawHeight + framePaddingBottom);
     this.ctx.imageSmoothingEnabled = false;
 
         // Apply transformations (rotation, mirroring, spinning)
@@ -236,8 +253,8 @@ class Character extends GameObject {
         // Draw the sprite sheet frame
         this.ctx.drawImage(
             this.spriteSheet,
-            frameX, frameY, srcFrameWidth, srcFrameHeight, // Source rectangle
-            0, 0, this.canvas.width, this.canvas.height // Destination rectangle
+            frameX + sourcePadLeft, frameY, srcDrawWidth, srcDrawHeight, // Source rectangle
+            0, 0, this.canvas.width, destDrawHeight // Destination rectangle
         );
     }
 
@@ -249,7 +266,11 @@ class Character extends GameObject {
         if (this.frameCounter % this.animationRate === 0) {
             const directionData = this.spriteData[this.direction] || {};
             const frames = directionData.columns || this.spriteData.orientation.columns || 1;
-            this.frameIndex = (this.frameIndex + 1) % frames;
+            if (directionData.reverse) {
+                this.frameIndex = this.frameIndex <= 0 ? (frames - 1) : (this.frameIndex - 1);
+            } else {
+                this.frameIndex = (this.frameIndex + 1) % frames;
+            }
         }
     }
 
