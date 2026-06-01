@@ -3,7 +3,8 @@ layout: post
 codemirror: True
 title: Aquatic Game Level Explanation
 description: CSSE topic-by-topic explanation of the Aquatic game level code.
-permalink: /personal-accomplishment-yiming/aquatic-game-level-explanation/
+legacy_source: true
+permalink: /personal-accomplishment-yiming/aquatic-game-level-explanation-legacy/
 ---
 
 # Aquatic Game Level Explanation
