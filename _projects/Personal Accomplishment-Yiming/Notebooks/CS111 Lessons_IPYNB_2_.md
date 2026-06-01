@@ -176,65 +176,64 @@ Before the topic-by-topic breakdown, the notebook now includes a small playable 
 })();
 </script>
 
-## CS111 Rubric Portal (Specific Objective Mapping)
+## CS 111 Course Alignment Rubric
 
-Use this portal to jump directly to a single rubric objective. Each objective now includes: objective + explanation + code evidence together.
+### Required Evidence for College Credit
+Students must demonstrate competency in all CS 111 learning objectives through their game project. Below is the alignment between CS 111 requirements and project deliverables, with evidence pulled from the Aquatic game level implementation.
 
-### 1.0 Object-Oriented Programming
-- [1.1 Writing Classes](#11-writing-classes)
-- [1.2 Methods and Parameters](#12-methods-and-parameters)
-- [1.3 Instantiation and Objects](#13-instantiation-and-objects)
-- [1.4 Inheritance Basic](#14-inheritance-basic)
-- [1.5 Method Overriding](#15-method-overriding)
-- [1.6 Constructor Chaining](#16-constructor-chaining)
-
-### 2.0 Control Structures
-- [2.1 Iteration](#21-iteration)
-- [2.2 Conditionals](#22-conditionals)
-- [2.3 Nested Conditions](#23-nested-conditions)
-
-### 3.0 Data Types
-- [3.1 Numbers](#31-numbers)
-- [3.2 Strings](#32-strings)
-- [3.3 Booleans](#33-booleans)
-- [3.4 Arrays](#34-arrays)
-- [3.5 Objects JSON](#35-objects-json)
-
-### 4.0 Operators
-- [4.1 Mathematical Operators](#41-mathematical-operators)
-- [4.2 String Operations](#42-string-operations)
-- [4.3 Boolean Expressions](#43-boolean-expressions)
-
-### 5.0 Input Output
-- [5.1 Keyboard Input](#51-keyboard-input)
-- [5.2 Canvas Rendering](#52-canvas-rendering)
-- [5.3 GameEnv Configuration](#53-gameenv-configuration)
-- [5.4 API Integration](#54-api-integration)
-- [5.5 Asynchronous IO](#55-asynchronous-io)
-- [5.6 JSON Parsing](#56-json-parsing)
-
-### 6.0 Documentation
-- [6.1 Code Comments](#61-code-comments)
-- [6.2 Mini-Lesson Documentation](#62-mini-lesson-documentation)
-- [6.3 Code Highlights](#63-code-highlights)
-
-### 7.0 Debugging and Testing
-- [7.1 Console Debugging](#71-console-debugging)
-- [7.2 Hit Box Visualization](#72-hit-box-visualization)
-- [7.3 Source-Level Debugging](#73-source-level-debugging)
-- [7.4 Network Debugging](#74-network-debugging)
-- [7.5 Application Debugging](#75-application-debugging)
-- [7.6 Element Inspection](#76-element-inspection)
-- [7.7 Gameplay Testing](#77-gameplay-testing)
-- [7.8 Integration Testing](#78-integration-testing)
-- [7.9 API Error Handling](#79-api-error-handling)
+| Learning Objective | Project Evidence Required | Assessment Method |
+| --- | --- | --- |
+| **Object-Oriented Programming** |  |  |
+| Writing Classes | Create minimum 2 custom character classes extending base classes. Evidence: `class Player extends Character`, `class Npc extends Character`, `class Shark extends Enemy` in `assets/js/GameEnginev1/essentials/Player.js`, `assets/js/GameEnginev1/essentials/Npc.js`, `assets/js/GameEnginev1/Shark.js`. | Code review: class declarations and `extends` usage |
+| Methods & Parameters | Implement methods with parameters. Evidence: `applyPlayerDamage(damage, x, y, source)` and `applyMermaidBossDamage(damage, hitX, hitY)` in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`. | Code review: method signatures with 2+ parameters |
+| Instantiation & Objects | Instantiate game objects in level configuration/runtime. Evidence: `const guardian = new Npc(guardianData, this.gameEnv);` and `this.gameEnv.gameObjects.push(guardian);` in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`. | Code review: GameLevel setup and runtime object registration |
+| Inheritance (Basic) | Create class hierarchy with 2+ levels. Evidence: `GameObject -> Character -> Player` and `Character -> Npc -> Shark`. | Code review: inheritance chain and shared behavior |
+| Method Overriding | Override parent methods (`update()`, interaction handling, behavior methods). Evidence: child entity update and interaction methods in player/NPC/enemy classes. | Code review: polymorphic implementations |
+| Constructor Chaining | Use `super()` to chain constructors. Evidence: `super(data, gameEnv)` patterns in entity constructors. | Code review: `super(data, gameEnv)` calls |
+| **Control Structures** |  |  |
+| Iteration | Use loops for game object arrays and attack phases. Evidence: `thresholds.forEach((threshold) => { ... })`, update loops, projectile iteration. | Code review: `for`, `forEach`, `while` |
+| Conditionals | Implement collision checks and state transitions. Evidence: quest/boss transitions such as `if (q1.completed && !q2.accepted) { ... }`. | Code review: `if/else` branches |
+| Nested Conditions | Multi-stage combat logic. Evidence: `if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) { ... }`. | Code review: multi-level conditional logic |
+| **Data Types** |  |  |
+| Numbers | Position, HP, cooldown, and timing tracking. Evidence: `const hpRatio = this.bossState.hp / this.bossState.maxHp;`. | Code review: numeric properties and math usage |
+| Strings | Character IDs, paths, and labels. Evidence: `const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';`. | Code review: string literals and concatenation/template usage |
+| Booleans | Flags for active/completed states. Evidence: `this.levelCompleted = false;`, `this.bossState.active = true;`. | Code review: boolean state transitions |
+| Arrays | Game object collections and threshold lists. Evidence: `const thresholds = [0.75, 0.5, 0.25];`. | Code review: array operations |
+| Objects (JSON) | Config/state object literals. Evidence: `const guardianData = { orientation: { ... }, attack: { ... } };`. | Code review: object literal structure |
+| **Operators** |  |  |
+| Mathematical | Physics/combat calculations. Evidence: `this.bossState.maxHp * threshold`, vector and distance calculations in attacks. | Code review: `+`, `-`, `*`, `/` usage |
+| String Operations | Path assembly and identifiers. Evidence: `const backgroundAssetPath = path + '/images/gamebuilder/bg';`. | Code review: concatenation/template literals |
+| Boolean Expressions | Compound game-state checks. Evidence: `&&`, `||`, `!` in phase gates and quest flow. | Code review: compound conditions |
+| **Input/Output** |  |  |
+| Keyboard Input | WASD/keyboard mapping and handlers. Evidence: `this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };` and keydown listeners. | Testing: key event handlers respond correctly |
+| Canvas Rendering | Draw/update lifecycle for entities. Evidence: `update() { this.draw(); }` and sprite rendering in character classes. | Code review: render lifecycle methods |
+| GameEnv Configuration | Canvas/runtime setup and class registration. Evidence: `this.gameEnv.create();` and level constructor wiring. | Code review: GameEnv setup + GameLevel init |
+| API Integration | Fetch-based external communication. Evidence: `await fetch(`${this.game.javaURI}/bank/${personId}/npcProgress`, this.fetchOptions);`. | Code review: fetch calls with error handling |
+| Asynchronous I/O | Non-blocking runtime functions. Evidence: `async handleMoodClick(mood) { const response = await fetch(...); }`. | Code review: async/await flow |
+| JSON Parsing | Parse API payloads. Evidence: `const result = await response.json();`. | Code review: response parsing and property access |
+| **Documentation** |  |  |
+| Code Comments | Intent comments in complex logic. Evidence: `// Initialize touch controls for mobile devices`. | Code review: meaningful comment usage |
+| Mini-Lesson Documentation | Notebook sections and rubric mapping for instruction. Evidence: this notebook's rubric + objective sections. | Portfolio review: published mini-lesson |
+| Code Highlights | Annotated snippets under each rubric objective. Evidence: objective-specific code blocks in this notebook. | Portfolio review: highlighted explanations |
+| **Debugging** |  |  |
+| Console Debugging | Runtime diagnostics. Evidence: `console.warn('Unable to play aquatic boss theme', err);`. | Code review: strategic logging/warnings |
+| Hit Box Visualization | Collision-distance validation. Evidence: `if (hitDistance < 30) { applyPlayerDamage(...); }`. | Demo: collision boundary verification |
+| Source-Level Debugging | Breakpoint-friendly state guards. Evidence: `if (this.bossState.active || this.bossState.introPlayed) return;`. | Demo: stepping through flow in Sources |
+| Network Debugging | Request status checks. Evidence: `if (!response.ok) throw new Error('Failed to send mood');`. | Demo: inspect requests and responses |
+| Application Debugging | Local/session state verification. Evidence: `localStorage.setItem(...)`, `sessionStorage.setItem(...)`. | Demo: inspect storage state |
+| Element Inspection | DOM/canvas inspection logic. Evidence: `if (this.canvas?.parentNode) { this.canvas.parentNode.removeChild(this.canvas); }`. | Demo: inspect DOM/canvas lifecycle |
+| **Testing & Verification** |  |  |
+| Gameplay Testing | Validate quest/combat flow. Evidence: dialogue progression and boss-state transitions in Aquatic level scripts. | Live demo: complete flow without blockers |
+| Integration Testing | Verify backend-connected paths. Evidence: `await fetch(`${this.game.javaURI}/createStats`, { method: 'POST', body: JSON.stringify({ stats, gname, uid }) });`. | Demo: successful integrated requests |
+| API Error Handling | Graceful failure handling. Evidence: try/catch around fetch with fallback status UI (`this.showStatus('Network error', true);`). | Code review: explicit error handling |
 
 ---
 
+## 1 — Object-Oriented Programming
+
 ### 1.1 Writing Classes
-- Objective: Create custom classes extending base classes.
-- Explanation: This proves OOP class design and reusable game entities.
-- Code example:
+A **class** is a blueprint for creating objects. `extends` builds an inheritance chain so classes can reuse behavior. `this.classes` tells the engine what to create at startup.
+
 
 {% capture challenge0 %}
 Run the real aquatic level from the project source file.
@@ -258,330 +257,368 @@ export { GameControl };
 %}
 
 
-### 1.2 Methods and Parameters
-- Objective: Implement methods with parameters.
-- Explanation: Parameterized methods enable reusable combat/state logic.
-- Code example:
-```javascript
-applyPlayerDamage(34, px, py, 'rocket');
-applyMermaidBossDamage(36, projectile.x, projectile.y);
-```
+### 1.2 Methods & Parameters
+A **method** is a class function that uses `this` instance state. **Parameters** let one method handle many callers.
 
-### 1.3 Instantiation and Objects
-- Objective: Instantiate game objects in level setup.
-- Explanation: Runtime objects are created and registered in the game loop.
-- Code example:
 ```javascript
-const guardian = new Npc(guardianData, this.gameEnv);
-this.gameEnv.gameObjects.push(guardian);
-```
+applyPlayerDamage(damage, x, y, source) {
+  if (!this.bossState.active) return;
+  // damage and hit position are parameter-driven
+}
 
-### 1.4 Inheritance Basic
-- Objective: Show a multi-level class hierarchy.
-- Explanation: Inheritance lets entities share behavior from base classes.
-- Code example:
-```javascript
-class Player extends Character {}
-class Character extends GameObject {}
-```
+applyMermaidBossDamage(damage, hitX, hitY) {
+  if (!this.mermaidBossState.active) return;
+  // same logic shape, different target state
+}
 
-### 1.5 Method Overriding
-- Objective: Override lifecycle behavior.
-- Explanation: Child classes customize parent update/draw behavior.
-- Code example:
-```javascript
-update() {
-  super.update();
+collisionChecks() {
+  for (const gameObj of this.gameEnv.gameObjects) {
+    if (gameObj instanceof Player) {
+      this.isCollision(gameObj);
+      if (this.collisionData.hit) return true;
+    }
+  }
+  return false;
 }
 ```
 
-### 1.6 Constructor Chaining
-- Objective: Use super(data, gameEnv) in subclass constructors.
-- Explanation: super(...) initializes inherited state correctly.
-- Code example:
-```javascript
-constructor(data = null, gameEnv = null) {
-  super(data, gameEnv);
-}
-```
+### 1.3 Instantiation & Objects
+Instantiation uses `new ClassName(...)` to create independent runtime objects. Aquatic level setup uses both class instances and object-literal configuration.
 
-### 2.1 Iteration
-- Objective: Use loops for repeated gameplay work.
-- Explanation: Iteration handles thresholds, spawning, and object updates.
-- Code example:
-```javascript
-thresholds.forEach((threshold) => {
-  if (this.bossState.hp <= this.bossState.maxHp * threshold) summonRushingSharks();
-});
-```
-
-### 2.2 Conditionals
-- Objective: Use conditionals for branch logic.
-- Explanation: if/else gates story and combat transitions.
-- Code example:
-```javascript
-if (q1.completed && !q2.accepted) {
-  this.dialogueSystem.showDialogue('Will you take Aquatic Quest #2?', 'Slime', null);
-}
-```
-
-### 2.3 Nested Conditions
-- Objective: Demonstrate complex multi-condition logic.
-- Explanation: Multiple conditions ensure ability timing and phase correctness.
-- Code example:
-```javascript
-if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
-  startMermaidBossAbility('laser', state.laserChargeMs);
-}
-```
-
-### 3.1 Numbers
-- Objective: Track numeric gameplay values.
-- Explanation: Positions, HP, and timing values are numeric state.
-- Code example:
-```javascript
-const width = gameEnv.innerWidth;
-const hpRatio = this.bossState.hp / this.bossState.maxHp;
-```
-
-### 3.2 Strings
-- Objective: Use strings for IDs, paths, and labels.
-- Explanation: String data drives assets and dialogue labels.
-- Code example:
-```javascript
-const backgroundAssetPath = path + '/images/gamebuilder/bg';
-const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';
-```
-
-### 3.3 Booleans
-- Objective: Use boolean state flags.
-- Explanation: true/false flags control menu, quest, and boss state.
-- Code example:
-```javascript
-this.frontMenuActive = false;
-this.levelCompleted = false;
-this.bossState.active = true;
-```
-
-### 3.4 Arrays
-- Objective: Use arrays for collections.
-- Explanation: Arrays store options, objects, thresholds, and frame sets.
-- Code example:
-```javascript
-const aquaticSpriteOptions = [
-  { key: 'scuba-diver', label: 'Scuba Diver' },
-  { key: 'boy', label: 'Boy' }
-];
-```
-
-### 3.5 Objects JSON
-- Objective: Use object literals to model structured data.
-- Explanation: JSON-style objects group related config/state fields.
-- Code example:
 ```javascript
 const guardianData = {
   orientation: { rows: 6, columns: 6 },
   attack: { row: 4, start: 0, columns: 5 }
 };
+
+const guardian = new Npc(guardianData, this.gameEnv);
+this.gameEnv.gameObjects.push(guardian);
+
+this.classes = [
+  { class: GameEnvBackground, data: image_data_aquatic }
+];
 ```
 
-### 4.1 Mathematical Operators
-- Objective: Use + - * / in gameplay logic.
-- Explanation: Math operators compute thresholds and damage logic.
-- Code example:
+### 1.4 Inheritance
+Inheritance lets child classes automatically use parent fields/methods without rewriting everything.
+
 ```javascript
+class GameObject {
+  constructor(gameEnv) {
+    this.gameEnv = gameEnv;
+    gameEnv.gameObjects.push(this);
+  }
+}
+
+class Character extends GameObject {
+  constructor(data = null, gameEnv = null) {
+    super(gameEnv);
+    this.velocity = { x: 0, y: 0 };
+  }
+}
+
+class Player extends Character {
+  constructor(data = null, gameEnv = null) {
+    super(data, gameEnv);
+    this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+  }
+}
+```
+
+### 1.5 Method Overriding
+Overriding happens when a child defines the same method name as a parent. `super.methodName()` keeps parent behavior and extends it.
+
+```javascript
+update() {
+  super.update();
+  if (!this.playerDestroyed && this.collisionChecks()) {
+    this.handleCollisionEvent();
+  }
+  this.stayWithinCanvas();
+}
+
+handleCollisionReaction(other) {
+  const touchPoints = this.collisionData?.touchPoints?.this;
+  if (touchPoints?.top) this.velocity.y = Math.min(0, this.velocity.y);
+  if (touchPoints?.bottom) this.velocity.y = Math.max(0, this.velocity.y);
+  if (touchPoints?.left) this.velocity.x = Math.min(0, this.velocity.x);
+  if (touchPoints?.right) this.velocity.x = Math.max(0, this.velocity.x);
+}
+```
+
+### 1.6 Constructor Chaining
+`super()` in child constructors calls parent setup first. JavaScript requires this before using `this`.
+
+```javascript
+constructor(data = null, gameEnv = null) {
+  super(data, gameEnv);
+  this.pressedKeys = {};
+}
+
+constructor(data = null, gameEnv = null) {
+  super(gameEnv);
+  this.canvas = document.createElement('canvas');
+  this.velocity = { x: 0, y: 0 };
+}
+
+constructor(gameEnv) {
+  this.gameEnv = gameEnv;
+  this.canvas = document.createElement('canvas');
+  gameEnv.gameObjects.push(this);
+}
+```
+
+Use this section as the OOP evidence reference, then continue with the existing sections for Control Structures, Data Types, Operators, Input/Output, Documentation, Debugging, and Testing.
+
+## 2 — Control Structures
+
+### 2.1 Iteration
+**Code evidence (Aquatic):**
+```javascript
+ 1// Each threshold represents a boss HP phase trigger (75%, 50%, 25%).
+thresholds.forEach((threshold) => {
+  // Compare current HP to a percentage of max HP.
+  if (this.bossState.hp <= this.bossState.maxHp * threshold) {
+    // Spawn reinforcements when that phase is reached.
+    summonRushingSharks();
+  }
+});
+```
+**How this works in my Aquatic game:**
+- The loop checks each HP threshold (75%, 50%, 25%).
+- When Megalodon HP drops below a threshold, shark reinforcements are spawned.
+- This creates phase-based combat escalation.
+
+### 2.2 Conditionals
+**Code evidence (Aquatic):**
+```javascript
+// Only show Quest 2 prompt after Quest 1 is complete.
+if (q1.completed && !q2.accepted) {
+  // Dialogue branch advances story progression.
+  this.dialogueSystem.showDialogue('Will you take Aquatic Quest #2?', 'Slime', null);
+}
+```
+**How this works in my Aquatic game:**
+- The game only offers Quest 2 after Quest 1 is complete.
+- It prevents showing wrong dialogue at the wrong time.
+- This keeps quest progression logic consistent.
+
+### 2.3 Nested Conditions
+**Code evidence (Aquatic):**
+```javascript
+// Laser requires: phase unlocked + cooldown reached + late-phase flag.
+if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
+  // Start laser with configured charge duration.
+  startMermaidBossAbility('laser', state.laserChargeMs);
+}
+```
+**How this works in my Aquatic game:**
+- Mermaid laser requires multiple conditions at once: phase unlock + cooldown time.
+- This prevents ability spam and preserves intended boss pacing.
+
+## 3 — Data Types
+
+### 3.1 Numbers
+**Code evidence (Aquatic):**
+```javascript
+// Convert absolute HP into ratio for phase/UI logic.
+const hpRatio = this.bossState.hp / this.bossState.maxHp;
+```
+**How this works in my Aquatic game:**
+- Converts boss health into a ratio for phase checks and UI decisions.
+- Allows behavior to scale by percent, not hardcoded HP only.
+
+### 3.2 Strings
+**Code evidence (Aquatic):**
+```javascript
+// Storage key name used for persisting selected player sprite.
+const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';
+```
+**How this works in my Aquatic game:**
+- This string is the storage key used to remember selected player sprite.
+- Keeps player customization persistent across sessions.
+
+### 3.3 Booleans
+**Code evidence (Aquatic):**
+```javascript
+// Menu starts hidden when gameplay begins.
+this.frontMenuActive = false;
+// Boss logic gates open once encounter is activated.
+this.bossState.active = true;
+```
+**How this works in my Aquatic game:**
+- `frontMenuActive` toggles menu state.
+- `bossState.active` enables boss combat logic only when encounter starts.
+
+### 3.4 Arrays
+**Code evidence (Aquatic):**
+```javascript
+// Array of selectable character presets for the Aquatic level.
+const aquaticSpriteOptions = [
+  { key: 'scuba-diver', label: 'Scuba Diver' },
+  { key: 'boy', label: 'Boy' }
+];
+```
+**How this works in my Aquatic game:**
+- Stores available character choices in one data structure.
+- UI can render options and switch sprites from this list.
+
+### 3.5 Objects (JSON)
+**Code evidence (Aquatic):**
+```javascript
+// Object literal groups guardian animation configuration.
+const guardianData = {
+  orientation: { rows: 6, columns: 6 },
+  attack: { row: 4, start: 0, columns: 5 }
+};
+```
+**How this works in my Aquatic game:**
+- Groups sprite/animation config for a guardian NPC.
+- Makes NPC setup data-driven rather than hardcoding values across methods.
+
+## 4 — Operators
+
+### 4.1 Mathematical Operators
+**Code evidence (Aquatic):**
+```javascript
+// Multiply max HP by threshold to compute phase breakpoint.
 if (this.bossState.hp <= this.bossState.maxHp * threshold) {
   summonRushingSharks();
 }
 ```
+**How this works in my Aquatic game:**
+- Multiplies max HP by threshold to compute trigger points.
+- Uses `<=` to activate phase actions when HP reaches that level.
 
 ### 4.2 String Operations
-- Objective: Build strings dynamically.
-- Explanation: Concatenation and templates build paths and IDs.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
+// Build sprite path using string concatenation.
 const spriteAssetPath = path + '/images/gamebuilder/sprites';
+// Build unique collectible id using template literal.
 const itemId = `starfish_${i}`;
 ```
+**How this works in my Aquatic game:**
+- Concatenation builds asset folder paths.
+- Template literals generate unique collectible IDs.
 
 ### 4.3 Boolean Expressions
-- Objective: Use compound logic with &&, ||, !.
-- Explanation: Combined expressions enforce game-state correctness.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
+// Compound condition ensures laser can run only in valid phase/timing state.
 if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
   startMermaidBossAbility('laser', state.laserChargeMs);
 }
 ```
+**How this works in my Aquatic game:**
+- Compound boolean logic ensures ability fires only in valid game state.
+- Reduces bugs from partial or premature phase triggers.
+
+## 5 — Input/Output
 
 ### 5.1 Keyboard Input
-- Objective: Handle keyboard input with listeners.
-- Explanation: Key events map controls to movement/actions.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
+// Default WASD controls used when custom key data is absent.
 this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+// Keydown listener routes keyboard input into movement logic.
 addEventListener('keydown', this.handleKeyDown.bind(this));
 ```
+**How this works in my Aquatic game:**
+- Maps WASD keycodes to movement directions.
+- Listener captures real-time key presses for player control.
 
 ### 5.2 Canvas Rendering
-- Objective: Render entities through draw lifecycle.
-- Explanation: update() and draw() produce canvas output each frame.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
 update() {
+  // Draw is called each frame through the update lifecycle.
   this.draw();
 }
 ```
+**How this works in my Aquatic game:**
+- Every frame calls draw through update lifecycle.
+- Keeps character and boss visuals synced with game state.
 
 ### 5.3 GameEnv Configuration
-- Objective: Configure and initialize game environment.
-- Explanation: GameEnv initialization sets runtime canvas context.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
+// Create initializes game canvas/context and runtime object systems.
 this.gameEnv.create();
 ```
+**How this works in my Aquatic game:**
+- Initializes runtime environment, canvas, and object loop.
+- Without this call, gameplay rendering and updates cannot start.
 
 ### 5.4 API Integration
-- Objective: Use fetch for backend communication.
-- Explanation: API calls connect gameplay with external systems.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
+// Fetch backend NPC progress tied to current person/player id.
 const response = await fetch(`${this.game.javaURI}/bank/${personId}/npcProgress`, this.fetchOptions);
 ```
+**How this works in my Aquatic game:**
+- Sends/reads backend progress data tied to player profile.
+- Connects in-game actions with persistent external systems.
 
-### 5.5 Asynchronous IO
-- Objective: Use async/await for non-blocking behavior.
-- Explanation: Async methods prevent UI/game loop blocking.
-- Code example:
+### 5.5 Asynchronous I/O
+**Code evidence (Aquatic):**
 ```javascript
+// Async handler keeps UI responsive while POST request completes.
 async handleMoodClick(mood) {
   const response = await fetch(this.endpoint, { method: 'POST' });
 }
 ```
+**How this works in my Aquatic game:**
+- Prevents UI/game loop blocking during network requests.
+- Allows responses to be handled after request completion.
 
 ### 5.6 JSON Parsing
-- Objective: Parse JSON responses.
-- Explanation: Parsed payloads are consumed by game logic/state.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
+// Parse JSON payload into JavaScript object for game logic use.
 const result = await response.json();
 ```
+**How this works in my Aquatic game:**
+- Converts backend response payload into usable JS object data.
+- Enables quest/mood/progress logic to read structured fields.
+
+## 6 — Documentation
 
 ### 6.1 Code Comments
-- Objective: Document code intent and complex logic.
-- Explanation: Comments improve readability and reviewer understanding.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
-// Initialize touch controls for mobile devices
+// Initialize touch controls for mobile devices.
 this.touchControls = new TouchControls(gameEnv, this.touchOptions);
 ```
+**How this works in my Aquatic game:**
+- Comment explains why touch controls are created here.
+- Helps reviewers quickly understand mobile input design.
 
 ### 6.2 Mini-Lesson Documentation
-- Objective: Create educational, visual project documentation.
-- Explanation: Notebook structure teaches concepts with runtime evidence.
-- Code example:
+**Code evidence (Aquatic notebook):**
 ```markdown
-## Interactive Rubric Dashboard
-## CS111 Rubric Portal (Specific Objective Mapping)
+## CS 111 Course Alignment Rubric
+### Required Evidence for College Credit
 ```
+**How this works in my Aquatic game portfolio:**
+- Organizes evidence in rubric order for grading.
+- Connects gameplay code to CS111 objectives clearly.
 
 ### 6.3 Code Highlights
-- Objective: Annotate key snippets by objective.
-- Explanation: Highlighted snippets accelerate grading and review.
-- Code example:
-```markdown
-### 1.2 Methods and Parameters
-applyPlayerDamage(34, px, py, 'rocket');
-```
-
-### 7.1 Console Debugging
-- Objective: Log runtime issues for troubleshooting.
-- Explanation: Warnings identify failures in audio/assets/runtime.
-- Code example:
+**Code evidence (Aquatic):**
 ```javascript
-console.warn('Unable to play aquatic boss theme', err);
+// Create boss NPC instance from configured boss data.
+const boss = new Npc(bossData, this.gameEnv);
+// Register boss in game object list so update/draw loop processes it.
+this.gameEnv.gameObjects.push(boss);
 ```
+**How this works in my Aquatic game:**
+- Highlighted snippet proves instantiation + runtime registration.
+- Shows exactly where boss entities enter the update/draw pipeline.
 
-### 7.2 Hit Box Visualization
-- Objective: Validate collision boundaries.
-- Explanation: Hit distance/radius checks prove collision math usage.
-- Code example:
-```javascript
-if (hitDistance < 30) {
-  applyPlayerDamage(this.bossState.playerHp, px, py, 'superLaser');
-}
-```
+---
 
-### 7.3 Source-Level Debugging
-- Objective: Step through logic in sources/breakpoints.
-- Explanation: Guard conditions provide clear pause points for debugging.
-- Code example:
-```javascript
-this.startMegalodonEncounter = async () => {
-  if (this.bossState.active || this.bossState.introPlayed) return;
-};
-```
-
-### 7.4 Network Debugging
-- Objective: Inspect request status and failures.
-- Explanation: response.ok checks surface server/network issues.
-- Code example:
-```javascript
-const response = await fetch(this.endpoint, { method: 'POST' });
-if (!response.ok) throw new Error('Failed to send mood');
-```
-
-### 7.5 Application Debugging
-- Objective: Inspect local/session storage state.
-- Explanation: Stored values verify persistence and session flow.
-- Code example:
-```javascript
-localStorage.setItem('aquatic_multiplayer_name', normalizedName);
-sessionStorage.setItem('aquatic_multiplayer_room', normalizedRoom);
-```
-
-### 7.6 Element Inspection
-- Objective: Inspect/manipulate rendered DOM elements.
-- Explanation: Canvas parent checks are useful element-level diagnostics.
-- Code example:
-```javascript
-if (this.canvas?.parentNode) {
-  this.canvas.parentNode.removeChild(this.canvas);
-}
-```
-
-### 7.7 Gameplay Testing
-- Objective: Validate complete quest/combat flow.
-- Explanation: End-to-end checks verify no critical blockers.
-- Code example:
-```javascript
-if (q2.pendingSlimeCompletion) {
-  this.dialogueSystem.showDialogue('You have saved the ocean...', 'Slime', null);
-}
-```
-
-### 7.8 Integration Testing
-- Objective: Verify feature-to-backend integration paths.
-- Explanation: POST workflows prove connected system behavior.
-- Code example:
-```javascript
-const response = await fetch(`${this.game.javaURI}/createStats`, {
-  method: 'POST',
-  body: JSON.stringify({ stats, gname, uid })
-});
-```
-
-### 7.9 API Error Handling
-- Objective: Handle API failure paths safely.
-- Explanation: try/catch prevents crashes and surfaces actionable errors.
-- Code example:
-```javascript
-try {
-  const response = await fetch(this.endpoint, { method: 'POST' });
-} catch (err) {
-  this.showStatus('Network error', true);
-}
-```
+Each topic is now separated with one focused code evidence block, inline comments, and one direct Aquatic-specific explanation.
 
 ## Topic Index
 
@@ -764,541 +801,3 @@ import GameLevelAquaticGameLevel from '/assets/js/GameEnginev1/GameLevelAquaticG
 export const gameLevelClasses = [GameLevelAquaticGameLevel];
 export { GameControl };
 ```
-
-## Functions
-Functions are reusable blocks of code, and this file uses them to control game behavior. For example, NPC `interact` functions decide what happens when the player talks to a character, and helper functions like `showStoryStep` move the dialogue from one part of the story to the next.
-Functions make the game easier to organize because each behavior has its own job instead of placing all logic in one huge block.
-
-
-```python
-const showStoryStep = (step) => {
-  if (step === 0) {
-    this.dialogueSystem.showDialogue('Before the modern human society...', 'Slime', null);
-    return;
-  }
-
-  if (step === 1) {
-    this.dialogueSystem.showDialogue('Countless plastics were thrown into the ocean.', 'Slime', null);
-    return;
-  }
-
-  this.dialogueSystem.showDialogue('Please protect the ocean :(', 'Slime', null);
-};
-```
-
-## Arrays
-Arrays appear many times in the Aquatic file to store groups of related data. For example, `scubaLeftFrames`, `scubaThrowFrames`, and `aquaticSpriteOptions` hold multiple frame or sprite objects in order.
-Arrays are helpful in games because the code can loop through them, search through them, or select one option from many.
-
-
-```python
-const scubaLeftFrames = [
-  { x: 37, width: 146 },
-  { x: 208, width: 151 },
-  { x: 378, width: 154 },
-  { x: 553, width: 167 }
-];
-
-const aquaticSpriteOptions = [
-  { key: 'scuba-diver', label: 'Scuba Diver' },
-  { key: 'boy', label: 'Boy' },
-  { key: 'astro', label: 'Astro' }
-];
-```
-
-## Booleans
-Booleans are values that are either `true` or `false`, and this file uses them to keep track of game state. For example, values like `frontMenuActive`, `levelCompleted`, `active`, `accepted`, and `completed` are booleans.
-These booleans help the game know whether a quest has started, whether a boss fight is active, or whether a menu should be shown.
-
-
-```python
-this.frontMenuActive = false;
-this.levelCompleted = false;
-
-const questState = {
-  firstQuest: { accepted: false, completed: false },
-  secondQuest: { accepted: false, completed: false }
-};
-```
-
-## Variables
-Variables store data that the Aquatic level needs to use later. This file creates many variables for paths, sprite sheets, screen size, local storage keys, and quest state.
-Without variables, the code would need to rewrite the same values again and again, which would make the file harder to read and update.
-
-
-```python
-const path = gameEnv.path || '';
-const backgroundAssetPath = path + '/images/gamebuilder/bg';
-const spriteAssetPath = path + '/images/gamebuilder/sprites';
-const width = gameEnv.innerWidth;
-const height = gameEnv.innerHeight;
-const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';
-```
-
-## Conditionals
-Conditionals are used throughout the Aquatic file to choose what happens next. For example, the Slime NPC uses `if` statements to decide which dialogue or quest option to show depending on the player's progress.
-This is important in games because the same character should not always say the same thing after the player completes a mission.
-
-
-```python
-if (q2.pendingSlimeCompletion) {
-  this.dialogueSystem.showDialogue('You have saved the ocean...', 'Slime', null);
-  return;
-}
-
-if (q1.completed && !q2.accepted) {
-  this.dialogueSystem.showDialogue('Will you take Aquatic Quest #2?', 'Slime', null);
-  return;
-}
-```
-
-## Classes
-The file defines a class named `GameLevelAquaticGameLevel`. A class is a blueprint that groups together data and behavior for one part of a program. In this case, the class represents the whole aquatic level.
-Using a class makes sense because the level needs to store many related values like music, quests, boss state, player state, and helper functions all in one organized structure.
-
-
-```python
-class GameLevelAquaticGameLevel {
-  constructor(gameEnv) {
-    this.gameEnv = gameEnv;
-    this.frontMenuActive = false;
-  }
-}
-```
-
-## Constructors
-The constructor is the special part of a class that runs when the level is created. In the Aquatic file, the constructor sets up everything the level needs, such as paths, sprites, quests, challenge state, and music.
-This is where the game prepares the level before the player starts moving around inside it.
-
-
-```python
-constructor(gameEnv) {
-  this.gameEnv = gameEnv;
-  this.questState = questState;
-  this.challengeState = challengeState;
-  this.levelCompleted = false;
-  this.playerLock = false;
-}
-```
-
-## Methods
-Methods are functions attached to objects or classes. In the Aquatic file, NPC objects have methods like `interact`, and those methods decide how characters respond to the player.
-Methods help keep actions attached to the object that owns them, which makes the code easier to understand.
-
-
-```python
-const kirbyNpc = {
-  id: 'Kirby',
-  interact: function() {
-    if (levelContext.gameMode === 'challenge') return;
-    AiNpc.showInteraction(this);
-  }
-};
-```
-
-## Strings
-Strings are pieces of text, and the Aquatic level uses them for file paths, character names, dialogue, and local storage keys. Many of these strings are combined with other values to create complete asset paths.
-This lets the code build image or audio locations dynamically instead of hardcoding every path separately.
-
-
-```python
-const path = gameEnv.path || '';
-const backgroundAssetPath = path + '/images/gamebuilder/bg';
-const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';
-
-const kirbyNpc = {
-  id: 'Kirby',
-  greeting: 'Poyo! Ask me anything about ocean cleanup and sea life.'
-};
-```
-
-## Data Abstraction
-Data abstraction means organizing complex information into structures that are easier to use. This file does that with objects like `playerData`, `questState`, `challengeState`, and the NPC objects.
-Instead of keeping every value as a separate loose variable, the code groups related values together so the rest of the game can work with them more clearly.
-
-
-```python
-const questState = {
-  firstQuest: { accepted: false, completed: false, collected: 0 },
-  secondQuest: { accepted: false, completed: false, collected: 0 }
-};
-
-const playerData = {
-  id: 'playerData',
-  INIT_POSITION: { x: 180, y: 300 },
-  keypress: { up: 87, left: 65, down: 83, right: 68 }
-};
-```
-
-## Mathematical Expressions
-Mathematical expressions are used whenever the Aquatic file needs to calculate positions, sizes, rows, or columns. Even small calculations matter in games because movement and animation depend on exact numbers.
-Expressions with `+`, `-`, `*`, and functions like `Math.min` help the game place sprites correctly and control animation directions.
-
-
-```python
-const width = gameEnv.innerWidth;
-const height = gameEnv.innerHeight;
-
-const rightRow = Math.min(1, 4 - 1);
-const leftRow = Math.min(2, 4 - 1);
-
-const startPosition = { x: 180, y: 300 };
-```
-
-## Iteration
-Iteration means repeating a process, and the Aquatic file uses real loops to place collectibles and process groups of game objects. One example is building a list of random starfish positions and then looping through that list to create each collectible.
-Iteration is important in games because the same action often needs to happen many times, such as spawning items, updating enemies, or applying effects to every object in a group.
-
-
-```python
-const positions = [];
-let attempts = 0;
-
-while (positions.length < count && attempts < 500) {
-  attempts += 1;
-  const x = Math.floor(Math.random() * (maxX - padding) + padding);
-  const y = Math.floor(Math.random() * (maxY - padding) + padding);
-
-  if (!tooClose && !tooCloseToNpc) positions.push({ x, y });
-}
-
-positions.forEach((pos, i) => {
-  const itemId = `starfish_${i}`;
-  // Create one collectible for each stored position.
-});
-```
-
-## Megalodon Boss Explanation
-The megalodon boss fight uses the same CSSE topics as the rest of the Aquatic level, but in a more combat-focused way.
-Instead of one long summary, this section breaks the boss code into smaller pieces so each topic can be seen directly in the code.
-
-
-```python
-this.startMegalodonEncounter = async () => {
-  if (this.bossState.active || this.bossState.introPlayed) return;
-
-  this.bossState.introPlayed = true;
-  this.bossState.active = true;
-  this.bossState.hp = this.bossState.maxHp;
-  this.bossState.summonThresholdsTriggered = [];
-
-  const bossData = {
-    id: 'MegalodonBoss',
-    src: this.bossState.megalodonMoveSheet,
-    INIT_POSITION: { x: 120, y: this.gameEnv.innerHeight - 150 },
-    laserAttack: { row: 0, start: 0, columns: 3 },
-    rocketAttack: { row: 1, start: 0, columns: 3 }
-  };
-
-  const boss = new Npc(bossData, this.gameEnv);
-  this.bossState.megalodon = boss;
-  this.gameEnv.gameObjects.push(boss);
-};
-
-const thresholds = [0.75, 0.5, 0.25];
-thresholds.forEach((threshold) => {
-  if (this.bossState.hp <= this.bossState.maxHp * threshold) {
-    summonRushingSharks();
-  }
-});
-```
-
-### Rubric-Focused Code Evidence (Megalodon Section)
-This section is rewritten to match CS111 rubric language directly. Each item uses the format: **this line uses ... which ...**
-
-#### Object-Oriented Programming (classes, instantiation, constructor use)
-```javascript
-const boss = new Npc(bossData, this.gameEnv);
-this.gameEnv.gameObjects.push(boss);
-```
-- This line uses **class instantiation** (`new Npc(...)`) which demonstrates creating objects from a class in active gameplay code.
-- This line uses **array-based object registration** (`gameObjects.push`) which demonstrates runtime object management in the level loop.
-
-#### Methods and Parameters
-```javascript
-applyPlayerDamage(damage, x, y, source);
-```
-- This line uses a **method with 4 parameters**, which matches the rubric requirement for parameterized methods and clear method signatures.
-
-#### Control Structures (conditionals + iteration)
-```javascript
-const thresholds = [0.75, 0.5, 0.25];
-thresholds.forEach((threshold) => {
-  if (this.bossState.hp <= this.bossState.maxHp * threshold) {
-    summonRushingSharks();
-  }
-});
-```
-- This line uses an **array + iteration** (`forEach`) which demonstrates repeated checks over structured data.
-- This line uses a **conditional with mathematical comparison** which demonstrates phase-based game logic and nested combat decisions.
-
-#### Data Types and Operators
-```javascript
-this.bossState.hp = this.bossState.maxHp;
-const hpRatio = this.bossState.hp / this.bossState.maxHp;
-if (this.bossState.active && hpRatio <= 0.5) { /* phase logic */ }
-```
-- This line uses **numbers** (HP values) and the **assignment operator** to initialize state.
-- This line uses **mathematical operators** (`/`) which calculate health ratios for behavior changes.
-- This line uses **booleans** and **boolean operators** (`&&`, `<=`) which gate combat transitions.
-
-#### Input/Output and Rendering Flow
-```javascript
-this.gameEnv.gameObjects.push(boss);
-```
-- This line uses the game engine **output pipeline** (objects added to update/draw arrays), which is how boss entities appear in canvas rendering.
-
-#### State Management
-```javascript
-this.bossState.active = true;
-this.bossState.introPlayed = true;
-this.bossState.summonThresholdsTriggered = [];
-```
-- These lines use explicit **state flags and state collections**, which demonstrate pause/phase/transition-style management required by game-loop architecture.
-
-#### Debugging and Verification Hint
-To verify this rubric evidence, search your game file for: `new Npc(`, `applyPlayerDamage(`, `forEach(`, `if (`, `gameObjects.push(`, and `bossState.`.
-
-## Rubric-Focused Code Evidence (Mermaid Section)
-This section focuses on CS111 categories first, then links each category to concrete Mermaid boss evidence.
-
-#### Asynchronous I/O and Timed Logic
-```javascript
-this.startMermaidBossEncounter = async () => {
-  const state = this.mermaidBossState;
-  state.nextVolleyReadyAt = Date.now() + 1200;
-  state.nextBombAt = Date.now() + 9500;
-};
-```
-- This line uses an **async function**, which demonstrates asynchronous programming structure expected by the rubric.
-- This line uses **mathematical time offsets** (`Date.now() + ...`) which implement scheduled combat behavior.
-
-#### Data Abstraction (JSON/Object Literals)
-```javascript
-const guardianData = {
-  orientation: { rows: 6, columns: 6 },
-  attack: { row: 4, start: 0, columns: 5 },
-  rangedAttack: { row: 5, start: 0, columns: 5 }
-};
-```
-- This line uses an **object literal (JSON-style configuration)** which demonstrates data-driven design and structured state/config storage.
-
-#### OOP: Instantiation, Inheritance Usage, and Object Lifecycle
-```javascript
-const guardian = new Npc(guardianData, this.gameEnv);
-this.gameEnv.gameObjects.push(guardian);
-```
-- This line uses **constructor-based object creation**, which demonstrates OOP instantiation for runtime entities.
-- This line uses **engine lifecycle registration**, which connects class objects to update/draw behavior in the game loop.
-
-#### Control Structures + Boolean Expressions
-```javascript
-if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
-  startMermaidBossAbility('laser', state.laserChargeMs);
-}
-```
-- This line uses a **compound boolean expression** (`&&`) which demonstrates rubric-level boolean logic and conditional gating.
-- This line uses **state-based control structure**, which demonstrates multi-condition transitions in combat flow.
-
-#### Strings, Arrays, and Method Calls
-```javascript
-const launchMermaidVolley = () => startMermaidBossAbility('volley');
-this.gameEnv.gameObjects.push(guardian);
-```
-- This line uses a **string argument** (`'volley'`) which labels and dispatches an ability mode.
-- This line uses an **array operation** (`push`) and **method call**, which demonstrates collection management plus object behavior invocation.
-
-#### Documentation-Style Evidence Sentence Example
-Example sentence you can reuse in review comments:
-- "This line uses a compound boolean expression (`state.phaseTwoUnlocked && ...`) which controls when the laser attack is allowed, demonstrating nested conditional logic required by the CS111 control-structures rubric."
-
-#### Quick Verification Checklist
-Search for these symbols in your source to prove the rubric items:
-- `async`
-- `new Npc(`
-- `gameObjects.push(`
-- `Date.now() +`
-- `&&`
-- `startMermaidBossAbility(`
-
-### Complete Boss Ability Map With Topic Relationships
-
-## Megalodon Boss Abilities
-
-### 1) Laser Beam
-Code evidence:
-```javascript
-if (state.activeAbility === 'laser') {
-  commitLaser();
-}
-
-if (dLine < 20) {
-  applyPlayerDamage(42, playerX, playerY, 'laser');
-}
-```
-Topic relationship:
-- Functions/Methods: `commitLaser()` and beam update logic are split into reusable units.
-- Conditionals/Booleans: `state.activeAbility === 'laser'` gates when laser logic runs.
-- Math: segment distance math checks if the player intersects the beam.
-
-### 2) Rocket Barrage
-Code evidence:
-```javascript
-const rocketLaunches = [
-  { angle: targetAngle - 0.54, homing: 0, speed: 5.1 },
-  { angle: targetAngle - 0.18, homing: 0, speed: 5.5 },
-  { angle: targetAngle + 0.16, homing: 0.09, speed: 5.2 },
-  { angle: targetAngle + 0.48, homing: 0, speed: 4.9 }
-];
-
-applyPlayerDamage(p.type === 'rocket' ? 34 : 28, playerX, playerY, 'rocket');
-```
-Topic relationship:
-- Arrays/Iteration: `rocketLaunches` is iterated to spawn a multi-rocket pattern.
-- Variables: per-rocket `speed`, `angle`, and `homing` tune behavior.
-- Conditionals: damage branch depends on projectile type.
-
-### 3) Body Swing Shockwave
-Code evidence:
-```javascript
-if (dist < 130) {
-  applyPlayerDamage(48, px, py);
-}
-```
-Topic relationship:
-- Conditionals: range check decides whether damage is applied.
-- Math expressions: distance to player is computed with `Math.hypot`.
-- Methods: committed through `commitBodySwing()` during the attack timeline.
-
-### 4) Rushing Shark Summons
-Code evidence:
-```javascript
-if (this.bossState.hp <= this.bossState.maxHp * threshold) {
-  summonRushingSharks(threshold > 0.5 ? 2 : 4);
-}
-
-if (this.bossState.hp <= this.bossState.maxHp * 0.1) {
-  summonRushingSharks(1);
-}
-```
-Topic relationship:
-- Iteration: thresholds are checked in a loop.
-- Conditionals/Booleans: each threshold triggers only once via tracking array.
-- Data abstraction: summon objects are stored in `bossState.summons`.
-
-### 5) Weakened Megalodon Add
-Code evidence:
-```javascript
-if (this.bossState.hp <= this.bossState.maxHp * 0.25) {
-  summonWeakenedMegalodon();
-}
-```
-Topic relationship:
-- Classes/Constructors: `new Npc(minionData, this.gameEnv)` creates the add.
-- Variables: HP threshold controls phase transition.
-- Strings: spawned unit id uses a string template.
-
-### 6) Orb Combat System (Boss-Phase Utility Ability)
-Code evidence:
-```javascript
-if (Date.now() >= this.bossState.nextOrbSpawnAt) {
-  spawnCombatOrb();
-  this.bossState.nextOrbSpawnAt = Date.now() + 10000;
-}
-```
-Topic relationship:
-- Data abstraction: orb definitions and buff flags are grouped in structured objects.
-- Functions/Methods: orb spawn, activation, aura sync, and announcements are modular.
-- Mathematical expressions: timer arithmetic schedules recurring spawns.
-
-## Mermaid Boss Abilities
-
-### 1) Rocket Volley
-Code evidence:
-```javascript
-if (state.volleyShotsRemaining > 0 && now >= state.nextVolleyShotAt) {
-  commitMermaidRockets();
-  state.volleyShotsRemaining -= 1;
-}
-
-applyPlayerDamage(34, px, py, 'rocket');
-```
-Topic relationship:
-- Iteration over time: repeated timed shots create a volley pattern.
-- Variables: `volleySize`, `shotIntervalMs`, and cooldown fields shape behavior.
-- Conditionals: fire only when timers and counters permit.
-
-### 2) Bomb Rain and Explosion
-Code evidence:
-```javascript
-if (state.activeAbility === 'bombs' && !state.abilityCommitted) {
-  spawnMermaidBombs();
-}
-
-if (toPlayerBomb < bomb.size * 0.92) {
-  applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.22), bomb.x, bomb.y, 'bomb');
-}
-```
-Topic relationship:
-- Arrays/Iteration: bombs are tracked and updated in `state.bombs` each frame.
-- Math: explosion radius and HP-percent damage are numeric calculations.
-- Conditionals/Booleans: commit flags prevent duplicate spawns during one cast.
-
-### 3) Star Guardian Summon
-Code evidence:
-```javascript
-if (state.activeAbility === 'summon' && !state.abilityCommitted) {
-  spawnMermaidStarGuardians();
-}
-
-applyPlayerDamage(summon.damage, px, py, 'guardian');
-```
-Topic relationship:
-- Classes/Constructors: guardians are created using `new Npc(guardianData, this.gameEnv)`.
-- Arrays: guardians are registered in `gameObjects` and `state.summons`.
-- Conditionals: summon unlock is phase-gated and cooldown-gated.
-
-### 4) Super Laser
-Code evidence:
-```javascript
-if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
-  startMermaidBossAbility('laser', state.laserChargeMs);
-}
-
-if (hitDistance < 30) {
-  applyPlayerDamage(this.bossState.playerHp, px, py, 'superLaser');
-}
-```
-Topic relationship:
-- Booleans/Conditionals: requires multiple phase flags before activation.
-- Math: line-segment hit testing determines whether player is hit.
-- Variables: charge time and cooldown values tune the attack.
-
-### 5) Assault Dash
-Code evidence:
-```javascript
-if (state.activeAbility === 'assault') {
-  boss.position.x += normalizedX * assaultSpeed;
-  boss.position.y += normalizedY * assaultSpeed;
-}
-
-if (collisionDistance < 118) {
-  applyPlayerDamage(Math.ceil(this.bossState.playerMaxHp * 0.5), px, py, 'assault');
-}
-```
-Topic relationship:
-- Mathematical expressions: normalized vectors produce dash movement.
-- Variables: `assaultSpeed`, collision range, and duration shape execution.
-- Conditionals: hit logic and end-of-ability timing are branch-driven.
-
-## Phase Relationships (Why Abilities Unlock When They Do)
-Code evidence:
-```javascript
-state.phaseTwoUnlocked = state.hp <= state.maxHp * 0.5;
-state.phaseThreeUnlocked = state.hp <= state.maxHp * 0.3;
-state.phaseFourUnlocked = state.hp <= state.maxHp * 0.1;
-```
-Topic relationship:
-- Variables + Math + Booleans: HP ratios become boolean phase states.
-- Conditionals: these booleans gate bombs, laser, summon, and assault availability.
-- Data abstraction: all phase and cooldown fields live in `mermaidBossState` and `bossState`.
