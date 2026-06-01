@@ -236,30 +236,108 @@ A **class** is a blueprint for creating objects. `extends` builds an inheritance
 
 
 {% capture challenge0 %}
-Run the real aquatic level from the project source file.
+Practice #1 - Conditionals and Loops
 {% endcapture %}
 
 {% capture code0 %}
-import GameControl from '/assets/js/GameEnginev1/essentials/GameControl.js';
-import GameLevelAquaticGameLevel from '/assets/js/GameEnginev1/GameLevelAquaticGameLevel.js';
+const bossHp = 46;
+const maxHp = 100;
+const thresholds = [0.75, 0.5, 0.25];
 
-export const gameLevelClasses = [GameLevelAquaticGameLevel];
-export { GameControl };
+thresholds.forEach((t) => {
+  if (bossHp <= maxHp * t) {
+    console.log(`Threshold triggered at ${t * 100}%`);
+  }
+});
 {% endcapture %}
 
-{% include runners/game.html
+{% capture source0 %}
+```javascript
+// Player class extends Character, so Player inherits movement/collision/sprite behavior.
+class Player extends Character {
+  // Constructor runs when a new Player is created in the level class list.
+  constructor(data = null, gameEnv = null) {
+    // super(...) calls Character constructor first; required before using this.
+    super(data, gameEnv);
+
+    // Player identity in Aquatic (fallback if data.id is missing).
+    this.id = data?.id ?? 'player';
+
+    // Default WASD key mapping used by movement listeners.
+    this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+
+    // Tracks currently pressed keys for continuous movement.
+    this.pressedKeys = {};
+  }
+}
+
+// NPC class extends Character so it can share sprite and interaction lifecycle.
+class Npc extends Character {
+  constructor(data = null, gameEnv = null) {
+    super(data, gameEnv);
+  }
+}
+
+// Shark class extends Enemy (Enemy extends Character), forming a multi-level chain.
+class Shark extends Enemy {
+  constructor(data = null, gameEnv = null) {
+    super(data, gameEnv);
+    // Enemy-state flag used in collision/combat logic.
+    this.playerDestroyed = false;
+  }
+}
+
+// Aquatic level class: this.classes tells the engine exactly what objects to instantiate.
+class GameLevelAquaticGameLevel {
+  constructor(gameEnv) {
+    this.gameEnv = gameEnv;
+    this.classes = [
+      { class: GameEnvBackground, data: bgData },
+      { class: Player, data: playerData },
+      { class: Npc, data: mermaidNpc },
+      { class: Npc, data: slimeNpc },
+      { class: Npc, data: kirbyNpc },
+      { class: Npc, data: sharkNpc }
+    ];
+  }
+}
+```
+{% endcapture %}
+
+{% include runners/code.html
    runner_id="personal-accomplishment-yiming-aquatic-game-level-explanation-0"
+   language="javascript"
    challenge=challenge0
    code=code0
-   hide_edit="true"
-   width="100%"
-   height="620px"
+   source=source0
 %}
 
 
 ### 1.2 Methods & Parameters
 A **method** is a class function that uses `this` instance state. **Parameters** let one method handle many callers.
 
+
+{% capture challenge1 %}
+Practice #2 - Arrays, Objects, and Iteration
+{% endcapture %}
+
+{% capture code1 %}
+const starfish = [
+  { id: 'starfish_0', points: 5 },
+  { id: 'starfish_1', points: 10 },
+  { id: 'starfish_2', points: 15 }
+];
+
+let total = 0;
+starfish.forEach((item) => {
+  total += item.points;
+});
+
+console.log('Collected:', starfish.map((s) => s.id).join(', '));
+console.log('Total points:', total);
+{% endcapture %}
+
+{% capture source1 %}
 ```javascript
 applyPlayerDamage(damage, x, y, source) {
   if (!this.bossState.active) return;
@@ -281,10 +359,45 @@ collisionChecks() {
   return false;
 }
 ```
+{% endcapture %}
+
+{% include runners/code.html
+   runner_id="personal-accomplishment-yiming-aquatic-game-level-explanation-1"
+   language="javascript"
+   challenge=challenge1
+   code=code1
+   source=source1
+%}
+
 
 ### 1.3 Instantiation & Objects
 Instantiation uses `new ClassName(...)` to create independent runtime objects. Aquatic level setup uses both class instances and object-literal configuration.
 
+
+{% capture challenge2 %}
+Practice #3 - Classes and Methods
+{% endcapture %}
+
+{% capture code2 %}
+class MiniPlayer {
+  constructor(name, hp = 100) {
+    this.name = name;
+    this.hp = hp;
+  }
+
+  takeDamage(amount) {
+    this.hp = Math.max(0, this.hp - amount);
+    return this.hp;
+  }
+}
+
+const diver = new MiniPlayer('Aqua Hero', 120);
+console.log('Start HP:', diver.hp);
+console.log('After 25 damage:', diver.takeDamage(25));
+console.log('After 200 damage:', diver.takeDamage(200));
+{% endcapture %}
+
+{% capture source2 %}
 ```javascript
 const guardianData = {
   orientation: { rows: 6, columns: 6 },
@@ -298,6 +411,16 @@ this.classes = [
   { class: GameEnvBackground, data: image_data_aquatic }
 ];
 ```
+{% endcapture %}
+
+{% include runners/code.html
+   runner_id="personal-accomplishment-yiming-aquatic-game-level-explanation-2"
+   language="javascript"
+   challenge=challenge2
+   code=code2
+   source=source2
+%}
+
 
 ### 1.4 Inheritance
 Inheritance lets child classes automatically use parent fields/methods without rewriting everything.
@@ -668,136 +791,73 @@ Use this plain index instead of teleport buttons.
 
 [Jump to Code Breakdown](#code-breakdown) | [Jump to Megalodon Boss Section](#megalodon-boss-explanation) | [Jump to Checklist Integration Layer](#project-checklist-integration-layer) | [Jump to Full Evidence Rubric](#comprehensive-implementation-rubric-aquatic-evidence)
 
-## Project Checklist Integration Layer
+## Code Practice Runners
+Use the runnable examples below to practice core CS111 patterns.
 
-This section now integrates with the single Project Checklist table above without adding another table.
-
-How to use this integration:
-- Start in the Project Checklist table.
-- Use the Related Notes links (Functions, Arrays, Booleans, etc.) for concept explanations.
-- Use the File Evidence Index below for code-level proof in project files.
-
-Objective mapping (non-table):
-- OOP objectives: Writing Classes, Methods and Parameters, Instantiation and Objects, Inheritance, Method Overriding, Constructor Chaining.
-- Control structures: Iteration, Conditionals, Nested Conditions.
-- Data types and operators: Numbers, Strings, Booleans, Arrays, Objects, Mathematical and Boolean expressions.
-- I/O and runtime: Keyboard Input, Canvas Rendering, GameEnv Configuration, Async I/O, JSON Parsing.
-- Debugging and verification: Console, hitbox, source-level, network, application, element inspection, gameplay and integration testing.
-
-[Jump to Project Checklist](#project-checklist)
-[Jump to Full Evidence Section](#file-evidence-index)
-
-## Comprehensive Implementation Rubric (Aquatic Evidence)
-
-This notebook intentionally keeps one table only (Project Checklist).
-This section upgrades evidence quality by using a **claim -> proof -> verification** format.
-
-### Evidence Quality Standard
-- Every objective should map to a specific file and a concrete symbol (class, method, function, or config object).
-- Evidence should show both implementation and behavior (where possible).
-- Verification should be reproducible by opening the file and searching for the symbol name.
-
-### File Evidence Index (High-Confidence)
-- **Classes + inheritance**
-  - Claim: Custom game entities are implemented with OOP hierarchy.
-  - Proof: `class Player`, `class Npc`, `class Character`, `class Shark` in `assets/js/GameEnginev1/essentials/Player.js`, `assets/js/GameEnginev1/essentials/Npc.js`, `assets/js/GameEnginev1/essentials/Character.js`, `assets/js/GameEnginev1/Shark.js`.
-  - Verify: Search `class Player extends`, `class Npc extends`, `class Shark extends`.
-
-- **Instantiation + object registration**
-  - Claim: The level creates and registers runtime objects.
-  - Proof: `new Npc(...)`, `new Player(...)`, and game object pushes inside `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`.
-  - Verify: Search `new Npc(`, `new Player(`, and `gameObjects.push(`.
-
-- **Methods with parameters**
-  - Claim: Combat/state logic uses parameterized methods.
-  - Proof: `applyPlayerDamage(damage, x, y, source)` and `applyMermaidBossDamage(damage, hitX, hitY)` in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`.
-  - Verify: Search exact method names and confirm argument usage inside each body.
-
-- **Iteration + conditionals**
-  - Claim: The gameplay loop uses loops and branching logic.
-  - Proof: `for (...)`, `forEach(...)`, `if (...)`, and compound checks in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`.
-  - Verify: Search `for (` and `if (`; inspect boss updates and projectile handling blocks.
-
-- **Data types + operators**
-  - Claim: Numeric, boolean, string, array, and object operations appear in gameplay state.
-  - Proof: Health math, cooldown timers, boolean flags, sprite arrays/options, and config objects in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`.
-  - Verify: Search for `Math.`, `===`, `&&`, `||`, and array/object literals near combat + quest state.
-
-- **Keyboard input + control flow**
-  - Claim: Player input wiring is implemented in level/runtime code.
-  - Proof: Key mapping and input-driven movement interactions in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js` and `assets/js/GameEnginev1/platformer/Input.js`.
-  - Verify: Search `keypress`, `keyCode`, and movement handling calls.
-
-- **Canvas/rendering pipeline**
-  - Claim: Sprite rendering uses engine character draw/update flow.
-  - Proof: Rendering and animation updates in `assets/js/GameEnginev1/essentials/Character.js` and `assets/js/GameEnginev1/essentials/Player.js`.
-  - Verify: Search `draw(`, `update(`, and sprite frame/orientation logic.
-
-- **Game environment configuration**
-  - Claim: Level/runtime config is connected to GameEnv and object setup.
-  - Proof: `GameEnv` setup and level constructor wiring in `assets/js/GameEnginev1/essentials/GameEnv.js` and `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js`.
-  - Verify: Search `GameEnv` creation/config references and constructor assignments.
-
-- **Async I/O + JSON handling**
-  - Claim: The project includes async fetch + JSON parse workflows beyond static gameplay.
-  - Proof: async data flow in `assets/js/GameEnginev1/FinTech.js`, `assets/js/GameEnginev1/GameLevelEnd.js`, `assets/js/GameEnginev1/StockMoodModal.js`, and `assets/js/GameEnginev1/GameLevelMeteorBlaster.js`.
-  - Verify: Search `async`, `await fetch`, `response.json()`, and payload access checks.
-
-- **Debugging evidence**
-  - Claim: The level includes practical debugging/tuning patterns.
-  - Proof: State guards, warnings, overlay controls, and local/session state usage in `assets/js/GameEnginev1/GameLevelAquaticGameLevel.js` and matching v1.1 implementation.
-  - Verify: Search `console`, `warn`, `localStorage`, and runtime state flag transitions.
-
-### Reviewer-Friendly Validation Steps
-1. Open each listed file and search for the exact symbols in this section.
-2. Confirm each symbol is used in active logic (not dead/commented code).
-3. Run local site and verify at least one runtime behavior per objective category (input, rendering, combat/state, async feature).
-4. Capture screenshot/video snippets as artifact proof for final submission.
-
-### Evidence Integrity Note
-This evidence section prioritizes **real, searchable implementation artifacts** over broad descriptions, so each rubric item can be defended during code review.
-
-[Jump to Project Checklist](#project-checklist)
-
-## Aquatic Asset Preview
-These are the exact aquatic assets now wired into the notebook page and the embedded runner.
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:18px 0;">
-  <figure style="margin:0;background:#082033;color:#e8fbff;border-radius:14px;padding:12px;border:1px solid rgba(120,220,255,0.28);">
-    <img src="{{ site.baseurl }}/images/gamebuilder/bg/Aquatic.png" alt="Aquatic underwater background" style="width:100%;height:140px;object-fit:cover;border-radius:10px;">
-    <figcaption style="margin-top:8px;font-size:0.95rem;"><strong>Aquatic.png</strong><br>Main underwater background used inside the runner.</figcaption>
-  </figure>
-  <figure style="margin:0;background:#082033;color:#e8fbff;border-radius:14px;padding:12px;border:1px solid rgba(120,220,255,0.28);">
-    <img src="{{ site.baseurl }}/images/gamebuilder/sprites/scubadiver.png" alt="Scuba diver sprite" style="width:100%;height:140px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,0.04);">
-    <figcaption style="margin-top:8px;font-size:0.95rem;"><strong>scubadiver.png</strong><br>4x3 diver sheet used as the playable character.</figcaption>
-  </figure>
-  <figure style="margin:0;background:#082033;color:#e8fbff;border-radius:14px;padding:12px;border:1px solid rgba(120,220,255,0.28);">
-    <img src="{{ site.baseurl }}/images/gamebuilder/sprites/slime.png" alt="Slime sprite" style="width:100%;height:140px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,0.04);">
-    <figcaption style="margin-top:8px;font-size:0.95rem;"><strong>slime.png</strong><br>Quest NPC sprite for the underwater story section.</figcaption>
-  </figure>
-  <figure style="margin:0;background:#082033;color:#e8fbff;border-radius:14px;padding:12px;border:1px solid rgba(120,220,255,0.28);">
-    <img src="{{ site.baseurl }}/images/gamebuilder/sprites/Shark.png" alt="Shark sprite" style="width:100%;height:140px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,0.04);">
-    <figcaption style="margin-top:8px;font-size:0.95rem;"><strong>Shark.png</strong><br>Hazard sprite used for the patrol enemy.</figcaption>
-  </figure>
-  <figure style="margin:0;background:#082033;color:#e8fbff;border-radius:14px;padding:12px;border:1px solid rgba(120,220,255,0.28);">
-    <img src="{{ site.baseurl }}/images/gamebuilder/sprites/trident.png" alt="Trident sprite" style="width:100%;height:140px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,0.04);">
-    <figcaption style="margin-top:8px;font-size:0.95rem;"><strong>trident.png</strong><br>Displayed as the goal icon for the boss-fight phase of the full level.</figcaption>
-  </figure>
-  <figure style="margin:0;background:#082033;color:#e8fbff;border-radius:14px;padding:12px;border:1px solid rgba(120,220,255,0.28);">
-    <img src="{{ site.baseurl }}/images/gamebuilder/bg/Above-the-water.png" alt="Above the water background" style="width:100%;height:140px;object-fit:cover;border-radius:10px;">
-    <figcaption style="margin-top:8px;font-size:0.95rem;"><strong>Above-the-water.png</strong><br>Surface-world transition art for the second quest scene.</figcaption>
-  </figure>
-</div>
-The notebook page now references the same named assets you listed, using site-served copies so the runner can load them on localhost without broken paths.
+### Practice 1: Conditionals and Thresholds
+Test phase checks with loops and if-statements.
 
 
 ```javascript
 %%js
 
-// GAME_RUNNER: Run the real aquatic level from the project source file. | hide_edit: true, width: 100%, height: 620px
+// CODE_RUNNER: Practice #1 - Conditionals and Loops
+const bossHp = 46;
+const maxHp = 100;
+const thresholds = [0.75, 0.5, 0.25];
 
-import GameControl from '/assets/js/GameEnginev1/essentials/GameControl.js';
-import GameLevelAquaticGameLevel from '/assets/js/GameEnginev1/GameLevelAquaticGameLevel.js';
+thresholds.forEach((t) => {
+  if (bossHp <= maxHp * t) {
+    console.log(`Threshold triggered at ${t * 100}%`);
+  }
+});
+```
 
-export const gameLevelClasses = [GameLevelAquaticGameLevel];
-export { GameControl };
+### Practice 2: Arrays and Objects
+Loop through item data and compute score totals.
+
+
+```javascript
+%%js
+
+// CODE_RUNNER: Practice #2 - Arrays, Objects, and Iteration
+const starfish = [
+  { id: 'starfish_0', points: 5 },
+  { id: 'starfish_1', points: 10 },
+  { id: 'starfish_2', points: 15 }
+];
+
+let total = 0;
+starfish.forEach((item) => {
+  total += item.points;
+});
+
+console.log('Collected:', starfish.map((s) => s.id).join(', '));
+console.log('Total points:', total);
+```
+
+### Practice 3: Classes and Methods
+Create an object, call methods, and watch state updates.
+
+
+```javascript
+%%js
+
+// CODE_RUNNER: Practice #3 - Classes and Methods
+class MiniPlayer {
+  constructor(name, hp = 100) {
+    this.name = name;
+    this.hp = hp;
+  }
+
+  takeDamage(amount) {
+    this.hp = Math.max(0, this.hp - amount);
+    return this.hp;
+  }
+}
+
+const diver = new MiniPlayer('Aqua Hero', 120);
+console.log('Start HP:', diver.hp);
+console.log('After 25 damage:', diver.takeDamage(25));
+console.log('After 200 damage:', diver.takeDamage(200));
 ```
