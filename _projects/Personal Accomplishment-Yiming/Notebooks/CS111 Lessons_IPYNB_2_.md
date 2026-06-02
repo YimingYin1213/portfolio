@@ -4,7 +4,7 @@ codemirror: True
 title: CS111 College Ready
 description: CSSE topic-by-topic explanation of the Aquatic game level code.
 permalink: /personal-accomplishment-yiming/cs111-college-ready/
-redirect_from: ['/personal-accomplishment-yiming/cs111-notes/', '/personal-accomplishment-yiming/cs111-notes', '/personal-accomplishment-yiming/cs111-lessons/']
+redirect_from: ['/personal-accomplishment-yiming/cs111-notes/', '/personal-accomplishment-yiming/cs111-notes', '/personal-accomplishment-yiming/cs111-lessons/', '/cs111-notes/', '/cs111-notes']
 ---
 
 # CS111 College Ready

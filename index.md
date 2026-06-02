@@ -39,7 +39,7 @@ Hi! My name is Yiming Yin
 
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <a href="{{site.baseurl}}/personal-accomplishment-yiming/cs111-notes/" style="text-decoration: none;">
+    <a href="{{site.baseurl}}/personal-accomplishment-yiming/cs111-college-ready/" style="text-decoration: none;">
         <div style="background-color: var(--green); color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
            CS111
         </div>
