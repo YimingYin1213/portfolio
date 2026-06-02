@@ -530,7 +530,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Inheritance',
       definition: 'Inheritance allows a class to reuse properties and methods from a parent class.',
       purpose: 'Reduces duplication and keeps behavior consistent.',
-      aquaticExample: 'GameObject -> Character -> Player',
+      aquaticExample: 'class Player extends Character',
       whyItMatters: 'Player gains movement/collision behavior from Character automatically.'
     },
     '1.5': {
@@ -538,7 +538,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Method Overriding',
       definition: 'A child class provides its own version of a parent method.',
       purpose: 'Allows specialization while keeping shared structure.',
-      aquaticExample: 'Player.update() extends parent update flow.',
+      aquaticExample: 'super.update(); // handles patrol, draw, base key listeners',
       whyItMatters: 'Each entity can update differently while using a common lifecycle.'
     },
     '1.6': {
@@ -570,7 +570,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Nested Conditions',
       definition: 'Nested conditions combine multiple requirements before action.',
       purpose: 'Enforces strict gameplay gates.',
-      aquaticExample: 'if (phaseTwo && cooldown && phaseThree) { startLaser(); }',
+      aquaticExample: 'if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {',
       whyItMatters: 'Prevents ability spam and preserves boss pacing.'
     },
     '3.1': {
@@ -578,7 +578,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Numbers',
       definition: 'Numbers represent measurable quantities.',
       purpose: 'Used for hp, speed, timers, and physics.',
-      aquaticExample: 'const hpRatio = hp / maxHp;',
+      aquaticExample: 'state.phaseTwoUnlocked = state.hp <= state.maxHp * 0.5;',
       whyItMatters: 'Phase decisions depend on numeric ratios.'
     },
     '3.2': {
@@ -586,7 +586,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Strings',
       definition: 'Strings store text values.',
       purpose: 'Used for IDs, labels, and asset keys.',
-      aquaticExample: "const key = 'aquatic_selected_sprite_v1';",
+      aquaticExample: "const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';",
       whyItMatters: 'Persistent settings and naming rely on stable string keys.'
     },
     '3.3': {
@@ -610,7 +610,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'String Operations',
       definition: 'String operators combine and format text.',
       purpose: 'Build IDs and asset paths dynamically.',
-      aquaticExample: "const id = `starfish_${i}`;",
+      aquaticExample: 'id: `MermaidStarGuardian_${Date.now()}_${index}`',
       whyItMatters: 'Dynamic names prevent collisions and simplify loops.'
     },
     '4.3': {
@@ -618,7 +618,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Boolean Expressions',
       definition: 'Boolean expressions evaluate logic conditions.',
       purpose: 'Protect execution with multi-condition checks.',
-      aquaticExample: 'if (a && b && c) { ... }',
+      aquaticExample: 'if (q1.completed && !q2.accepted) {',
       whyItMatters: 'Game actions only fire under valid state combinations.'
     },
     '5.1': {
@@ -626,7 +626,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Keyboard Input',
       definition: 'Input maps key events to behavior.',
       purpose: 'Turns player key presses into movement.',
-      aquaticExample: 'addEventListener("keydown", this.handleKeyDown.bind(this));',
+      aquaticExample: "window.addEventListener('keydown', this._boundHandleKeyDown);",
       whyItMatters: 'Without input mapping, character control fails.'
     },
     '5.2': {
@@ -634,7 +634,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Canvas Rendering',
       definition: 'Rendering draws game state to the screen.',
       purpose: 'Synchronizes visual frame updates.',
-      aquaticExample: 'update() { this.draw(); }',
+      aquaticExample: 'player.ctx.drawImage(',
       whyItMatters: 'Visual feedback is required for gameplay clarity.'
     },
     '5.3': {
@@ -658,7 +658,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Mini-Lesson Documentation',
       definition: 'Documentation maps code to learning objectives.',
       purpose: 'Turns implementation into teachable evidence.',
-      aquaticExample: 'CS111 rubric sections and objective-aligned notes',
+      aquaticExample: '// How to use this file:',
       whyItMatters: 'Students and evaluators can trace outcomes clearly.'
     },
     '6.3': {
@@ -666,7 +666,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Code Highlights',
       definition: 'Highlights isolate critical lines for explanation.',
       purpose: 'Focuses attention on high-value evidence.',
-      aquaticExample: 'new Npc(...) + gameObjects.push(...)',
+      aquaticExample: 'const guardian = new Npc(guardianData, this.gameEnv); this.gameEnv.gameObjects.push(guardian);',
       whyItMatters: 'Shows where concept meets runtime behavior.'
     },
     '7.1': {
@@ -682,7 +682,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Hit Box Visualization',
       definition: 'Hitbox visualization draws collision geometry during debug runs.',
       purpose: 'Aligns collision logic with what players visually see.',
-      aquaticExample: 'ctx.arc(player.x, player.y, 20, 0, Math.PI * 2)',
+      aquaticExample: 'hitbox: { widthPercentage: 0.18, heightPercentage: 0.22 },',
       whyItMatters: 'Prevents invisible unfair collisions and tuning errors.'
     },
     '7.3': {
@@ -690,7 +690,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Source-Level Debugging',
       definition: 'Breakpoints pause execution so variables can be inspected line-by-line.',
       purpose: 'Verifies phase gates, cooldown timers, and state branches precisely.',
-      aquaticExample: 'Breakpoint on phase-gate if condition in GameLevelAquaticGameLevel.js',
+      aquaticExample: 'if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {',
       whyItMatters: 'Finds exact lines where logic diverges from expectations.'
     },
     '7.4': {
@@ -698,7 +698,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Network Debugging',
       definition: 'Network debugging verifies request/response flow and headers.',
       purpose: 'Ensures fetch endpoints for progress/stats work reliably.',
-      aquaticExample: 'Inspect fetch to npcProgress and stats endpoints in Network tab',
+      aquaticExample: 'const response = await fetch(`${this.game.javaURI}/bank/${personId}/npcProgress`, this.fetchOptions);',
       whyItMatters: 'Distinguishes backend/CORS issues from front-end logic bugs.'
     },
     '7.5': {
@@ -706,7 +706,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Application Debugging',
       definition: 'Application debugging checks cookies and browser storage state.',
       purpose: 'Validates persistence and auth/session behavior.',
-      aquaticExample: "localStorage key 'aquatic_selected_sprite_v1' and auth cookies",
+      aquaticExample: 'localStorage.getItem(aquaticSpriteStorageKey)',
       whyItMatters: 'Explains why persisted data or authenticated requests fail.'
     },
     '7.6': {
@@ -714,7 +714,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
       title: 'Element Inspection',
       definition: 'Element inspection confirms DOM/canvas placement and styles.',
       purpose: 'Verifies runtime-created nodes and layout assumptions.',
-      aquaticExample: 'Inspect canvas parent positioning and HUD updates in Elements',
+      aquaticExample: "const beam = document.createElement('div');",
       whyItMatters: 'Solves invisible canvas, bad layering, and stale UI problems.'
     }
   };
