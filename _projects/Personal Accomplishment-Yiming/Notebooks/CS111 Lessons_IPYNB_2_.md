@@ -3,13 +3,180 @@ layout: post
 codemirror: True
 title: CS111 College Ready
 description: CSSE topic-by-topic explanation of the Aquatic game level code.
-permalink: /personal-accomplishment-yiming/aquatic-game-level-explanation/
+permalink: /personal-accomplishment-yiming/cs111-college-ready/
+redirect_from: ['/personal-accomplishment-yiming/cs111-notes/', '/personal-accomplishment-yiming/cs111-notes', '/personal-accomplishment-yiming/cs111-lessons/']
 ---
 
 # CS111 College Ready
 This notebook explains the code in `Aquatic For Reference.js` using CSSE topics like functions, arrays, booleans, conditionals, classes, constructors, methods, strings, data abstraction, math expressions, variables, and iteration.
 Each section below connects one CSSE topic to a real code pattern from the Aquatic level file.
 Before the topic-by-topic breakdown, the notebook now includes a small playable aquatic runner and a preview of the assets currently wired into the published site.
+
+<div style="margin: 12px 0 16px 0;">
+  <a href="{{ site.baseurl }}/personal-accomplishment-yiming/cs111-layered-learning/" style="display:inline-block; background:#f7b267; color:#102331; font-weight:700; text-decoration:none; padding:10px 14px; border-radius:10px; border:1px solid rgba(16,35,49,0.22);">
+    Open CS111 Layered Learning Explorer
+  </a>
+</div>
+
+## Quick Aquatic Game Runner
+Use this runner at the top to test a compact Aquatic-style loop before going lesson-by-lesson.
+
+<style>
+  .aquatic-runner {
+    margin: 12px 0 18px 0;
+    border: 1px solid rgba(16, 35, 49, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #041623;
+  }
+  .aquatic-runner-head {
+    padding: 10px 12px;
+    color: #dff7ff;
+    font-weight: 700;
+    background: rgba(5, 34, 51, 0.9);
+    border-bottom: 1px solid rgba(120, 207, 255, 0.25);
+  }
+  .aquatic-runner-body {
+    padding: 10px;
+  }
+  .aquatic-runner-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .aquatic-runner-btn {
+    border: 1px solid rgba(120, 207, 255, 0.45);
+    background: rgba(120, 207, 255, 0.12);
+    color: #dff7ff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .aquatic-runner-status {
+    color: #b9ecff;
+    font-size: 0.9rem;
+  }
+  .aquatic-runner-canvas {
+    width: 100%;
+    max-width: 100%;
+    height: clamp(480px, 56.25vw, 560px);
+    min-height: 480px;
+    border: 1px solid rgba(120, 207, 255, 0.28);
+    border-radius: 10px;
+    display: block;
+    background: #021019;
+    overflow: hidden;
+  }
+  .aquatic-runner-help {
+    color: #b9ecff;
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+</style>
+
+<div class="aquatic-runner" id="aquatic-runner-box">
+  <div class="aquatic-runner-head">Playable Aquatic Game Runner</div>
+  <div class="aquatic-runner-body">
+    <div class="aquatic-runner-controls">
+      <button class="aquatic-runner-btn" id="aquatic-start" type="button">Start Aquatic</button>
+      <button class="aquatic-runner-btn" id="aquatic-reset" type="button">Restart Aquatic</button>
+      <span class="aquatic-runner-status" id="aquatic-status">Status: ready (uses Aquatic For Reference logic)</span>
+    </div>
+    <div id="aquatic-engine-container" class="aquatic-runner-canvas"></div>
+    <div class="aquatic-runner-help">This runner directly loads <strong>GameLevelAquaticGameLevel</strong> from <code>assets/js/GameEnginev1.1/GameLevelAquaticGameLevel.js</code> (Aquatic For Reference implementation).</div>
+  </div>
+</div>
+
+<script type="module">
+(async function () {
+  const mount = document.getElementById('aquatic-engine-container');
+  const startBtn = document.getElementById('aquatic-start');
+  const resetBtn = document.getElementById('aquatic-reset');
+  const statusNode = document.getElementById('aquatic-status');
+  if (!mount || !startBtn || !resetBtn || !statusNode) return;
+
+  let Game = null;
+  let GameControl = null;
+  let AquaticLevel = null;
+  let gameCore = null;
+  let resizeTimer = null;
+
+  async function ensureModules() {
+    if (Game && GameControl && AquaticLevel) return;
+    const [gameModule, controlModule, aquaticModule] = await Promise.all([
+      import('{{ site.baseurl }}/assets/js/GameEnginev1.1/essentials/Game.js'),
+      import('{{ site.baseurl }}/assets/js/GameEnginev1.1/essentials/GameControl.js'),
+      import('{{ site.baseurl }}/assets/js/GameEnginev1.1/GameLevelAquaticGameLevel.js')
+    ]);
+    Game = gameModule.default;
+    GameControl = controlModule.default;
+    AquaticLevel = aquaticModule.default || (aquaticModule.gameLevelClasses && aquaticModule.gameLevelClasses[0]);
+    if (!Game || !GameControl || !AquaticLevel) {
+      throw new Error('Failed to load Aquatic runtime modules.');
+    }
+  }
+
+  function cleanupGame() {
+    if (!gameCore) return;
+    try {
+      gameCore.gameControl?.currentLevel?.destroy?.();
+      gameCore.gameControl?.cleanupInteractionHandlers?.();
+    } catch (_) {
+      // Best effort cleanup to avoid leaked handlers.
+    }
+    mount.innerHTML = '';
+    gameCore = null;
+  }
+
+  async function startGame() {
+    startBtn.disabled = true;
+    try {
+      statusNode.textContent = 'Status: loading Aquatic For Reference...';
+      await ensureModules();
+      cleanupGame();
+
+      const environment = {
+        path: '{{ site.baseurl }}',
+        gameContainer: mount,
+        gameLevelClasses: [AquaticLevel],
+        innerWidth: Math.max(320, Math.floor(mount.clientWidth || 920)),
+        innerHeight: Math.max(480, Math.floor(mount.clientHeight || 520)),
+        javaURI: window.javaURI,
+        pythonURI: window.pythonURI,
+        disablePauseMenu: true,
+        disableContainerAdjustment: true
+      };
+
+      gameCore = Game.main(environment, GameControl);
+      statusNode.textContent = 'Status: running Aquatic level';
+    } catch (err) {
+      statusNode.textContent = `Status: error (${err && err.message ? err.message : err})`;
+      console.error(err);
+    } finally {
+      startBtn.disabled = false;
+    }
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', async () => {
+    statusNode.textContent = 'Status: restarting Aquatic level...';
+    await startGame();
+  });
+
+  // Re-fit game runtime when viewport changes so the canvas doesn't overflow.
+  window.addEventListener('resize', () => {
+    if (!gameCore) return;
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      statusNode.textContent = 'Status: resizing runner...';
+      startGame();
+    }, 220);
+  });
+})();
+</script>
 
 ## Interactive Rubric Dashboard
 
@@ -176,6 +343,136 @@ Before the topic-by-topic breakdown, the notebook now includes a small playable 
 })();
 </script>
 
+<style>
+  .lesson-inline-runner {
+    margin: 10px 0 16px 0;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(120, 207, 255, 0.35);
+    background: rgba(8, 26, 40, 0.75);
+  }
+  .lesson-inline-runner .title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #cdefff;
+  }
+  .lesson-inline-runner button {
+    border: 1px solid rgba(47, 214, 162, 0.65);
+    background: rgba(47, 214, 162, 0.18);
+    color: #e8fff8;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .lesson-inline-runner pre {
+    margin: 0;
+    background: rgba(4, 15, 24, 0.8);
+    border: 1px solid rgba(120, 207, 255, 0.22);
+    border-radius: 8px;
+    padding: 8px;
+    overflow: auto;
+    white-space: pre-wrap;
+    font-size: 0.84rem;
+  }
+  .lesson-inline-runner .output {
+    margin-top: 8px;
+    color: #bde8ff;
+    font-size: 0.84rem;
+    white-space: pre-wrap;
+  }
+</style>
+
+<script>
+(function () {
+  const runnerMap = {
+    '1.1': "class Character {}\nclass Player extends Character {}\nconsole.log('Player inherits Character:', new Player() instanceof Character);",
+    '1.2': "function applyPlayerDamage(hp, dmg){ return Math.max(0, hp - dmg); }\nconsole.log('HP after hit:', applyPlayerDamage(100, 25));",
+    '1.3': "class Npc { constructor(id){ this.id = id; } }\nconst gameObjects = [];\ngameObjects.push(new Npc('guardian'));\nconsole.log('Objects:', gameObjects.length);",
+    '1.4': "class GameObject { update(){ return 'base'; } }\nclass Character extends GameObject {}\nclass Player extends Character {}\nconsole.log(new Player().update());",
+    '1.5': "class Enemy { update(){ return 'enemy'; } }\nclass Shark extends Enemy { update(){ return super.update() + '-rush'; } }\nconsole.log(new Shark().update());",
+    '1.6': "class Parent { constructor(v){ this.v = v; } }\nclass Child extends Parent { constructor(v){ super(v); this.ready = true; } }\nconsole.log(new Child(7));",
+    '2.1': "const thresholds = [0.75,0.5,0.25];\nconst hp = 46;\nthresholds.forEach(t => { if (hp <= 100 * t) console.log('trigger', t); });",
+    '2.2': "const q1 = { completed: true };\nconst q2 = { accepted: false };\nif (q1.completed && !q2.accepted) console.log('Offer Quest 2');",
+    '2.3': "const s = { p2: true, p3: true, next: 10 };\nconst now = 20;\nif (s.p2 && s.p3 && now >= s.next) console.log('Laser ready');",
+    '3.1': "const hp = 48, maxHp = 100;\nconsole.log('hpRatio:', hp / maxHp);",
+    '3.2': "const key = 'aquatic_selected_sprite_v1';\nconst path = '/images/gamebuilder/sprites';\nconsole.log(key, path);",
+    '3.3': "const bossState = { active: true };\nif (bossState.active) console.log('Boss logic active');",
+    '3.4': "const thresholds = [0.75,0.5,0.25];\nconsole.log('Count:', thresholds.length);",
+    '3.5': "const guardianData = { orientation: { rows: 6, columns: 6 } };\nconsole.log(guardianData.orientation.rows);",
+    '4.1': "const maxHp = 200, t = 0.5, hp = 99;\nconsole.log('trigger?', hp <= maxHp * t);",
+    '4.2': "for (let i = 0; i < 3; i++) console.log(`starfish_${i}`);",
+    '4.3': "const canCast = true && !false && (3 > 1);\nconsole.log('canCast:', canCast);",
+    '5.1': "const keypress = { up: 87, right: 68 };\nconst pressed = [87, 68];\nconsole.log('up-right?', pressed.includes(keypress.up) && pressed.includes(keypress.right));",
+    '5.2': "function draw(){ return 'draw frame'; }\nfunction update(){ return draw(); }\nconsole.log(update());",
+    '5.3': "const gameEnv = { created: false, create(){ this.created = true; } };\ngameEnv.create();\nconsole.log('created:', gameEnv.created);",
+    '5.4': "async function fakeFetch(){ return { ok: true, json: async () => ({ status: 'ok' }) }; }\nconst r = await fakeFetch();\nconsole.log((await r.json()).status);",
+    '5.5': "async function handleMoodClick(mood){ return `sent-${mood}`; }\nconsole.log(await handleMoodClick('happy'));",
+    '5.6': "const response = { json: async () => ({ saved: true }) };\nconst result = await response.json();\nconsole.log('saved:', result.saved);",
+    '6.1': "// Initialize touch controls for mobile devices\nconst touchEnabled = true;\nconsole.log('touchEnabled:', touchEnabled);",
+    '6.2': "const objective = '1.4 Inheritance';\nconst evidence = 'class Player extends Character';\nconsole.log(objective, '=>', evidence);",
+    '6.3': "const gameObjects = [];\nconst boss = { id: 'boss' };\ngameObjects.push(boss);\nconsole.log('registered:', gameObjects[0].id);"
+  };
+
+  function mountRunner(heading, lessonId) {
+    if (!heading || !lessonId) return;
+    if (heading.nextElementSibling && heading.nextElementSibling.classList && heading.nextElementSibling.classList.contains('lesson-inline-runner')) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'lesson-inline-runner';
+
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.textContent = `Lesson Runner ${lessonId}`;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Run This Lesson';
+
+    const code = document.createElement('pre');
+    const snippet = runnerMap[lessonId] || `console.log('Runner for ${lessonId}');`;
+    code.textContent = `%%js\n\n${snippet}`;
+
+    const out = document.createElement('div');
+    out.className = 'output';
+    out.textContent = 'Output appears here.';
+
+    btn.addEventListener('click', async () => {
+      const logs = [];
+      const capture = (...args) => logs.push(args.map((x) => String(x)).join(' '));
+      try {
+        const fn = new Function('console', `return (async () => { ${snippet} })();`);
+        await fn({ log: capture });
+        out.textContent = logs.length ? logs.join('\n') : 'Snippet ran with no console output.';
+      } catch (err) {
+        out.textContent = `Runner error: ${err && err.message ? err.message : err}`;
+      }
+    });
+
+    wrap.appendChild(title);
+    wrap.appendChild(btn);
+    wrap.appendChild(code);
+    wrap.appendChild(out);
+    heading.insertAdjacentElement('afterend', wrap);
+  }
+
+  function addRunnersToLessons() {
+    const headings = Array.from(document.querySelectorAll('h3'));
+    headings.forEach((h) => {
+      const text = (h.textContent || '').trim();
+      const match = text.match(/^([1-6]\.[1-6])/);
+      if (match) mountRunner(h, match[1]);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addRunnersToLessons);
+  } else {
+    addRunnersToLessons();
+  }
+})();
+</script>
+
 ## CS 111 Course Alignment Rubric
 
 ### Required Evidence for College Credit
@@ -236,19 +533,60 @@ A **class** is a blueprint for creating objects. `extends` builds an inheritance
 
 
 {% capture challenge0 %}
-Practice #1 - Conditionals and Loops
+OOP coverage for 1.1 to 1.6
 {% endcapture %}
 
 {% capture code0 %}
-const bossHp = 46;
-const maxHp = 100;
-const thresholds = [0.75, 0.5, 0.25];
-
-thresholds.forEach((t) => {
-  if (bossHp <= maxHp * t) {
-    console.log(`Threshold triggered at ${t * 100}%`);
+// 1.4 Inheritance root
+class GameObject {
+  constructor(gameEnv) {
+    this.gameEnv = gameEnv;
   }
-});
+  update() {
+    return 'base-update';
+  }
+}
+
+// 1.4 Inheritance middle + 1.6 constructor chaining
+class Character extends GameObject {
+  constructor(data = null, gameEnv = null) {
+    super(gameEnv);
+    this.data = data || {};
+    this.velocity = { x: 0, y: 0 };
+  }
+}
+
+// 1.1 Writing classes + 1.6 constructor chaining
+class Player extends Character {
+  constructor(data = null, gameEnv = null) {
+    super(data, gameEnv);
+    this.id = data?.id ?? 'player';
+    this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+    this.pressedKeys = {};
+  }
+
+  // 1.2 Methods and parameters
+  applyPlayerDamage(damage, source) {
+    this.hp = Math.max(0, (this.hp ?? 100) - damage);
+    return `Took ${damage} from ${source}. HP=${this.hp}`;
+  }
+
+  // 1.5 Method overriding
+  update() {
+    const parentResult = super.update();
+    return `${parentResult} -> player-update`;
+  }
+}
+
+// 1.3 Instantiation and objects
+const gameEnv = { level: 'Aquatic Demo' };
+const p1 = new Player({ id: 'aqua_hero' }, gameEnv);
+
+console.log('1.1 class + extends:', p1 instanceof Player, p1 instanceof Character);
+console.log('1.2 method params:', p1.applyPlayerDamage(25, 'rocket'));
+console.log('1.3 instantiation:', p1.id, p1.keypress.left);
+console.log('1.5 overriding:', p1.update());
+console.log('1.6 constructor chaining gameEnv:', p1.gameEnv.level);
 {% endcapture %}
 
 {% capture source0 %}
@@ -316,28 +654,6 @@ class GameLevelAquaticGameLevel {
 ### 1.2 Methods & Parameters
 A **method** is a class function that uses `this` instance state. **Parameters** let one method handle many callers.
 
-
-{% capture challenge1 %}
-Practice #2 - Arrays, Objects, and Iteration
-{% endcapture %}
-
-{% capture code1 %}
-const starfish = [
-  { id: 'starfish_0', points: 5 },
-  { id: 'starfish_1', points: 10 },
-  { id: 'starfish_2', points: 15 }
-];
-
-let total = 0;
-starfish.forEach((item) => {
-  total += item.points;
-});
-
-console.log('Collected:', starfish.map((s) => s.id).join(', '));
-console.log('Total points:', total);
-{% endcapture %}
-
-{% capture source1 %}
 ```javascript
 applyPlayerDamage(damage, x, y, source) {
   if (!this.bossState.active) return;
@@ -359,45 +675,10 @@ collisionChecks() {
   return false;
 }
 ```
-{% endcapture %}
-
-{% include runners/code.html
-   runner_id="personal-accomplishment-yiming-aquatic-game-level-explanation-1"
-   language="javascript"
-   challenge=challenge1
-   code=code1
-   source=source1
-%}
-
 
 ### 1.3 Instantiation & Objects
 Instantiation uses `new ClassName(...)` to create independent runtime objects. Aquatic level setup uses both class instances and object-literal configuration.
 
-
-{% capture challenge2 %}
-Practice #3 - Classes and Methods
-{% endcapture %}
-
-{% capture code2 %}
-class MiniPlayer {
-  constructor(name, hp = 100) {
-    this.name = name;
-    this.hp = hp;
-  }
-
-  takeDamage(amount) {
-    this.hp = Math.max(0, this.hp - amount);
-    return this.hp;
-  }
-}
-
-const diver = new MiniPlayer('Aqua Hero', 120);
-console.log('Start HP:', diver.hp);
-console.log('After 25 damage:', diver.takeDamage(25));
-console.log('After 200 damage:', diver.takeDamage(200));
-{% endcapture %}
-
-{% capture source2 %}
 ```javascript
 const guardianData = {
   orientation: { rows: 6, columns: 6 },
@@ -411,16 +692,6 @@ this.classes = [
   { class: GameEnvBackground, data: image_data_aquatic }
 ];
 ```
-{% endcapture %}
-
-{% include runners/code.html
-   runner_id="personal-accomplishment-yiming-aquatic-game-level-explanation-2"
-   language="javascript"
-   challenge=challenge2
-   code=code2
-   source=source2
-%}
-
 
 ### 1.4 Inheritance
 Inheritance lets child classes automatically use parent fields/methods without rewriting everything.
@@ -498,7 +769,7 @@ Use this section as the OOP evidence reference, then continue with the existing 
 ### 2.1 Iteration
 **Code evidence (Aquatic):**
 ```javascript
- 1// Each threshold represents a boss HP phase trigger (75%, 50%, 25%).
+// Each threshold represents a boss HP phase trigger (75%, 50%, 25%).
 thresholds.forEach((threshold) => {
   // Compare current HP to a percentage of max HP.
   if (this.bossState.hp <= this.bossState.maxHp * threshold) {
@@ -544,7 +815,8 @@ if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlock
 ### 3.1 Numbers
 **Code evidence (Aquatic):**
 ```javascript
-// Convert absolute HP into ratio for phase/UI logic.
+// Convert absolute HP into a ratio so behavior can scale by percent.
+// Example: 50/100 = 0.5, which can unlock mid-fight phase logic.
 const hpRatio = this.bossState.hp / this.bossState.maxHp;
 ```
 **How this works in my Aquatic game:**
@@ -555,6 +827,7 @@ const hpRatio = this.bossState.hp / this.bossState.maxHp;
 **Code evidence (Aquatic):**
 ```javascript
 // Storage key name used for persisting selected player sprite.
+// This exact key is reused when writing and reading localStorage values.
 const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';
 ```
 **How this works in my Aquatic game:**
@@ -566,7 +839,9 @@ const aquaticSpriteStorageKey = 'aquatic_selected_sprite_v1';
 ```javascript
 // Menu starts hidden when gameplay begins.
 this.frontMenuActive = false;
+
 // Boss logic gates open once encounter is activated.
+// Many attack/update branches check this flag before running.
 this.bossState.active = true;
 ```
 **How this works in my Aquatic game:**
@@ -577,6 +852,7 @@ this.bossState.active = true;
 **Code evidence (Aquatic):**
 ```javascript
 // Array of selectable character presets for the Aquatic level.
+// Each object stores a stable key (used by logic) and a label (used by UI text).
 const aquaticSpriteOptions = [
   { key: 'scuba-diver', label: 'Scuba Diver' },
   { key: 'boy', label: 'Boy' }
@@ -590,6 +866,7 @@ const aquaticSpriteOptions = [
 **Code evidence (Aquatic):**
 ```javascript
 // Object literal groups guardian animation configuration.
+// Nested fields let renderer/animation code read structured data by action name.
 const guardianData = {
   orientation: { rows: 6, columns: 6 },
   attack: { row: 4, start: 0, columns: 5 }
@@ -605,6 +882,7 @@ const guardianData = {
 **Code evidence (Aquatic):**
 ```javascript
 // Multiply max HP by threshold to compute phase breakpoint.
+// If max HP is 200 and threshold is 0.5, trigger point becomes 100 HP.
 if (this.bossState.hp <= this.bossState.maxHp * threshold) {
   summonRushingSharks();
 }
@@ -617,8 +895,11 @@ if (this.bossState.hp <= this.bossState.maxHp * threshold) {
 **Code evidence (Aquatic):**
 ```javascript
 // Build sprite path using string concatenation.
+// This keeps file paths dynamic across local and deployed environments.
 const spriteAssetPath = path + '/images/gamebuilder/sprites';
+
 // Build unique collectible id using template literal.
+// i changes each loop, so IDs become starfish_0, starfish_1, etc.
 const itemId = `starfish_${i}`;
 ```
 **How this works in my Aquatic game:**
@@ -629,6 +910,7 @@ const itemId = `starfish_${i}`;
 **Code evidence (Aquatic):**
 ```javascript
 // Compound condition ensures laser can run only in valid phase/timing state.
+// All three checks must be true for this branch to execute.
 if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked) {
   startMermaidBossAbility('laser', state.laserChargeMs);
 }
@@ -643,8 +925,11 @@ if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlock
 **Code evidence (Aquatic):**
 ```javascript
 // Default WASD controls used when custom key data is absent.
+// 87=W (up), 65=A (left), 83=S (down), 68=D (right).
 this.keypress = data?.keypress || { up: 87, left: 65, down: 83, right: 68 };
+
 // Keydown listener routes keyboard input into movement logic.
+// bind(this) preserves class context inside handleKeyDown.
 addEventListener('keydown', this.handleKeyDown.bind(this));
 ```
 **How this works in my Aquatic game:**
@@ -656,6 +941,7 @@ addEventListener('keydown', this.handleKeyDown.bind(this));
 ```javascript
 update() {
   // Draw is called each frame through the update lifecycle.
+  // This keeps sprite position/animation synced with current state.
   this.draw();
 }
 ```
@@ -667,6 +953,7 @@ update() {
 **Code evidence (Aquatic):**
 ```javascript
 // Create initializes game canvas/context and runtime object systems.
+// This is the startup handoff that makes the scene render and update.
 this.gameEnv.create();
 ```
 **How this works in my Aquatic game:**
@@ -677,6 +964,7 @@ this.gameEnv.create();
 **Code evidence (Aquatic):**
 ```javascript
 // Fetch backend NPC progress tied to current person/player id.
+// fetchOptions usually includes method, headers, and auth/session context.
 const response = await fetch(`${this.game.javaURI}/bank/${personId}/npcProgress`, this.fetchOptions);
 ```
 **How this works in my Aquatic game:**
@@ -687,6 +975,7 @@ const response = await fetch(`${this.game.javaURI}/bank/${personId}/npcProgress`
 **Code evidence (Aquatic):**
 ```javascript
 // Async handler keeps UI responsive while POST request completes.
+// await pauses this function only, not the entire render/game loop.
 async handleMoodClick(mood) {
   const response = await fetch(this.endpoint, { method: 'POST' });
 }
@@ -699,6 +988,7 @@ async handleMoodClick(mood) {
 **Code evidence (Aquatic):**
 ```javascript
 // Parse JSON payload into JavaScript object for game logic use.
+// After parsing, fields like result.success or result.stats can be read safely.
 const result = await response.json();
 ```
 **How this works in my Aquatic game:**
@@ -711,6 +1001,7 @@ const result = await response.json();
 **Code evidence (Aquatic):**
 ```javascript
 // Initialize touch controls for mobile devices.
+// This gives phone/tablet players on-screen movement and interaction inputs.
 this.touchControls = new TouchControls(gameEnv, this.touchOptions);
 ```
 **How this works in my Aquatic game:**
@@ -731,133 +1022,104 @@ this.touchControls = new TouchControls(gameEnv, this.touchOptions);
 **Code evidence (Aquatic):**
 ```javascript
 // Create boss NPC instance from configured boss data.
+// This line proves class-based object creation in a real combat flow.
 const boss = new Npc(bossData, this.gameEnv);
+
 // Register boss in game object list so update/draw loop processes it.
+// Without push, boss would exist but never be updated or rendered by engine loop.
 this.gameEnv.gameObjects.push(boss);
 ```
 **How this works in my Aquatic game:**
 - Highlighted snippet proves instantiation + runtime registration.
 - Shows exactly where boss entities enter the update/draw pipeline.
 
+## 7 — Debugging
+
+### 7.1 Console Debugging
+**Console logging** traces execution by printing values at key transitions: quest acceptance, boss spawn, phase changes, and request failures. Avoid logging every frame inside update loops.
+
+```javascript
+// Log once when quest progression changes.
+if (q1.completed && !q2.accepted) {
+  console.log('[Aquatic] Quest transition: Q1 complete, prompting Q2');
+}
+
+// Log when boss state transitions for verification.
+if (!this.bossState.active && shouldStartBoss) {
+  console.log(`[Aquatic] Boss start: hp=${this.bossState.hp}, maxHp=${this.bossState.maxHp}`);
+}
+
+// Log API failures with status code and endpoint context.
+if (!response.ok) {
+  console.warn(`[Aquatic] API request failed: status=${response.status}`);
+}
+```
+
+### 7.2 Hit Box Visualization
+**Hit box visualization** overlays collision circles/boxes so hit detection can be tuned against sprites. Use the same radii as collision logic to avoid mismatch.
+
+```javascript
+// Debug-only helper: visualize player and boss hit radii.
+function drawHitBoxes(ctx, player, boss) {
+  ctx.save();
+  ctx.lineWidth = 1;
+
+  // Player radius (green)
+  ctx.strokeStyle = 'rgba(0,255,0,0.7)';
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Boss radius (red)
+  if (boss) {
+    ctx.strokeStyle = 'rgba(255,60,0,0.7)';
+    ctx.beginPath();
+    ctx.arc(boss.x, boss.y, boss.r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+```
+
+### 7.3 Source-Level Debugging (DevTools Breakpoints)
+A **breakpoint** pauses execution at an exact line so you can inspect live state values (`bossState`, `phase flags`, cooldown timers) before/after updates.
+
+1. Open DevTools -> Sources.
+1. Navigate to assets/js/GameEnginev1/GameLevelAquaticGameLevel.js.
+1. Place breakpoint on a phase-gate line such as `if (state.phaseTwoUnlocked && now >= state.nextLaserAt && state.phaseThreeUnlocked)`.
+1. Trigger boss combat and wait for pause.
+1. Inspect `state`, `now`, and `nextLaserAt` in Scope.
+1. Step over line-by-line to confirm transitions.
+
+### 7.4 Network Debugging (Fetch / CORS)
+The **Network** tab shows every fetch request. For Aquatic, this is useful for debugging `npcProgress`, mood, and stats endpoints.
+
+1. Open DevTools -> Network -> filter Fetch/XHR.
+1. Trigger a game action that calls `fetch(...)`.
+1. In Headers, verify request URL and method.
+1. In Payload, verify JSON body fields for stats/progress.
+1. In Response, verify success object or error payload.
+1. For CORS failures, update server response headers (`Access-Control-Allow-Origin`).
+
+### 7.5 Application Debugging (Session & Storage)
+The **Application** tab is used to validate local/session storage and authentication cookies used by gameplay persistence.
+
+1. Open DevTools -> Application.
+1. Check Cookies for valid active session values.
+1. Check Expiration and SameSite behavior if authenticated requests fail.
+1. Under Local Storage, verify keys such as `aquatic_selected_sprite_v1`.
+1. Under Session Storage, verify any temporary gameplay state values if used.
+
+### 7.6 Element Inspection (Canvas & DOM)
+The **Elements** inspector confirms the Aquatic canvas/HUD is appended correctly and styles are applied as expected.
+
+1. Right-click game canvas -> Inspect.
+1. Confirm canvas is attached under expected parent container.
+1. Verify parent has proper positioning for absolute child elements.
+1. Verify HUD elements update (`textContent`, style width/health bars).
+1. If canvas is invisible or offset, inspect computed layout and z-index.
+
 ---
 
 Each topic is now separated with one focused code evidence block, inline comments, and one direct Aquatic-specific explanation.
 
-## Topic Index
-
-Use this plain index instead of teleport buttons.
-
-- [Functions](#functions)
-- [Arrays](#arrays)
-- [Booleans](#booleans)
-- [Conditionals](#conditionals)
-- [Classes](#classes)
-- [Constructors](#constructors)
-- [Methods](#methods)
-- [Strings](#strings)
-- [Data Abstraction](#data-abstraction)
-- [Mathematical Expressions](#mathematical-expressions)
-- [Variables](#variables)
-- [Iteration](#iteration)
-- [Project Checklist Integration](#project-checklist-integration-layer)
-- [Megalodon Boss Explanation](#megalodon-boss-explanation)
-- [Code Breakdown](#code-breakdown)
-
-## Project Checklist
-
-| Learning Objective | Related Notes | Project Evidence Required | Assessment Method |
-| --- | --- | --- | --- |
-| Writing Classes | [Classes](#classes) | Create minimum 2 custom character classes extending base classes | Code review: Player.js, Npc.js, Enemy.js |
-| Methods & Parameters | [Methods](#methods) | Implement methods with parameters | Code review: methods with 2+ parameters |
-| Instantiation & Objects | [Data Abstraction](#data-abstraction) | Instantiate game objects in level config | Code review: GameLevel setup objects |
-| Inheritance (Basic) | [Classes](#classes) | Use class hierarchy (GameObject -> Character -> Player) | Code review: extends chain |
-| Method Overriding | [Methods](#methods) | Override parent methods like update and draw | Code review: polymorphic implementations |
-| Constructor Chaining | [Constructors](#constructors) | Use super() in subclass constructors | Code review: super(data, gameEnv) calls |
-| Iteration | [Iteration](#iteration) | Use loops for arrays and animation | Code review: for, forEach, while |
-| Conditionals | [Conditionals](#conditionals) | Use if else logic for state transitions | Code review: nested conditions |
-| Numbers | [Mathematical Expressions](#mathematical-expressions) | Track position, velocity, score | Code review: numeric properties |
-| Strings | [Strings](#strings) | Use names, paths, and dialogue strings | Code review: string operations |
-| Booleans | [Booleans](#booleans) | Use flags for game state | Code review: boolean logic |
-| Arrays | [Arrays](#arrays) | Use arrays for objects and level data | Code review: array operations |
-| Objects (JSON) | [Data Abstraction](#data-abstraction) | Use object literals for config/state | Code review: object structures |
-| Mathematical Operators | [Mathematical Expressions](#mathematical-expressions) | Use + - * / for gameplay math | Code review: arithmetic in logic |
-| Boolean Expressions | [Booleans](#booleans) | Use &&, ||, ! in logic | Code review: compound conditions |
-| Keyboard Input | [Functions](#functions) | Implement WASD or arrow controls | Testing: key handlers work |
-| Canvas Rendering | [Classes](#classes) | Draw sprites/backgrounds with canvas | Code review: draw methods |
-| GameEnv Configuration | [Variables](#variables) | Configure canvas and game settings | Code review: GameEnv.create |
-| Async I/O | [Methods](#methods) | Use async and await for runtime flows | Code review: async methods |
-| JSON Parsing | [Data Abstraction](#data-abstraction) | Parse structured data payloads | Code review: JSON.parse and object access |
-| Debugging | [Code Breakdown](#code-breakdown) | Use console logs, inspect state, tune hitboxes | Demo: stable gameplay loop |
-
-[Jump to Code Breakdown](#code-breakdown) | [Jump to Megalodon Boss Section](#megalodon-boss-explanation) | [Jump to Checklist Integration Layer](#project-checklist-integration-layer) | [Jump to Full Evidence Rubric](#comprehensive-implementation-rubric-aquatic-evidence)
-
-## Code Practice Runners
-Use the runnable examples below to practice core CS111 patterns.
-
-### Practice 1: Conditionals and Thresholds
-Test phase checks with loops and if-statements.
-
-
-```javascript
-%%js
-
-// CODE_RUNNER: Practice #1 - Conditionals and Loops
-const bossHp = 46;
-const maxHp = 100;
-const thresholds = [0.75, 0.5, 0.25];
-
-thresholds.forEach((t) => {
-  if (bossHp <= maxHp * t) {
-    console.log(`Threshold triggered at ${t * 100}%`);
-  }
-});
-```
-
-### Practice 2: Arrays and Objects
-Loop through item data and compute score totals.
-
-
-```javascript
-%%js
-
-// CODE_RUNNER: Practice #2 - Arrays, Objects, and Iteration
-const starfish = [
-  { id: 'starfish_0', points: 5 },
-  { id: 'starfish_1', points: 10 },
-  { id: 'starfish_2', points: 15 }
-];
-
-let total = 0;
-starfish.forEach((item) => {
-  total += item.points;
-});
-
-console.log('Collected:', starfish.map((s) => s.id).join(', '));
-console.log('Total points:', total);
-```
-
-### Practice 3: Classes and Methods
-Create an object, call methods, and watch state updates.
-
-
-```javascript
-%%js
-
-// CODE_RUNNER: Practice #3 - Classes and Methods
-class MiniPlayer {
-  constructor(name, hp = 100) {
-    this.name = name;
-    this.hp = hp;
-  }
-
-  takeDamage(amount) {
-    this.hp = Math.max(0, this.hp - amount);
-    return this.hp;
-  }
-}
-
-const diver = new MiniPlayer('Aqua Hero', 120);
-console.log('Start HP:', diver.hp);
-console.log('After 25 damage:', diver.takeDamage(25));
-console.log('After 200 damage:', diver.takeDamage(200));
-```
