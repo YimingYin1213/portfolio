@@ -362,7 +362,11 @@
      */
     async function fetchUserUID() {
         const isLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        const isSecureOrigin = window.location.protocol === 'https:';
         if (window.shouldFetchIdentity === false || (window.shouldFetchIdentity === undefined && isLocalPreview)) {
+            return null;
+        }
+        if (!isSecureOrigin && !isLocalPreview) {
             return null;
         }
         try {

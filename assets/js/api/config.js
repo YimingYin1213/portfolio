@@ -28,7 +28,12 @@ function getLocalApiPreference() {
 
 export const baseurl = getBaseurl();
 const useLocalApi = getLocalApiPreference();
-export const shouldFetchIdentity = !localhostHosts.has(location.hostname) || useLocalApi;
+const isLocalhost = localhostHosts.has(location.hostname);
+const isSecureOrigin = location.protocol === 'https:';
+
+// Identity fetch requires cross-site cookies and CORS, so only do it on HTTPS
+// (or when explicitly using local API on localhost).
+export const shouldFetchIdentity = (isLocalhost && useLocalApi) || (!isLocalhost && isSecureOrigin);
 
 export const pythonURI = useLocalApi
     ? "http://localhost:8587"

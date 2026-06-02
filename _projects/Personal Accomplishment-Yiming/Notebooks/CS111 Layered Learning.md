@@ -104,7 +104,7 @@ Reference source: assets/js/GameEnginev1/GameLevelAquaticGameLevel.js (used to m
     height: 96px;
     border: none;
     border-radius: 0;
-    background-image: url('{{ site.baseurl }}/images/projects/Personal Accomplishment-Yiming/Sprites/Assisstant.png');
+    background-image: url('{{ site.baseurl }}/images/Assisstant.png');
     background-repeat: no-repeat;
     background-size: 384px 384px;
     image-rendering: pixelated;
