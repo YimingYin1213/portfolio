@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Week 1 Sprint 1
+title: Week 1 Sprint 1 CPT Requirements
 permalink: /week-1-sprint-1/
 codemirror: true
 contributors: Yiming, Noor, Luke
@@ -381,10 +381,10 @@ index = 0
 continue_entry = "yes"
 
 while continue_entry != "no" and index < len(simulated_entries):
-  hours = simulated_entries[index]
-  sessions.append(hours)
-  session_count += 1
-  total_hours += hours
+    hours = simulated_entries[index]
+    sessions.append(hours)
+    session_count += 1
+    total_hours += hours
     index += 1
     continue_entry = "no" if index >= len(simulated_entries) else "yes"
 
@@ -393,7 +393,7 @@ print("Session hours: " + str(sessions))
 print("Total sessions entered: " + str(session_count))
 print("Total hours played today: " + str(total_hours))
 if total_hours > 12:
-  print("Go touch grass.")
+    print("Go touch grass.")
 {% endcapture %}
 
 {% include runners/code.html
@@ -460,8 +460,8 @@ def calculate_average_playtime(sessions):
     total = 0
     count = 0
 
-  for hours in sessions:
-    total += hours
+    for hours in sessions:
+        total += hours
         count += 1
 
     if count > 0:
@@ -478,7 +478,7 @@ print("Average session hours: " + str(average_hours))
 print("Total hours played today: " + str(total_hours))
 
 if total_hours > 12:
-  print("Go touch grass.")
+    print("Go touch grass.")
 {% endcapture %}
 
 {% include runners/code.html
@@ -542,8 +542,8 @@ Translate linear search of player names with playtime checks into Python.
 # Perform a linear search and return a 1-based position when found.
 def find_player(players, target):
     index = 1
-  for player in players:
-    if player == target:
+    for player in players:
+        if player == target:
             return index
         index += 1
     return -1
@@ -650,7 +650,7 @@ for task in tasks:
     print("Task: " + task)
 
 if hours_played_today > 12:
-  print("Go touch grass.")
+    print("Go touch grass.")
 {% endcapture %}
 
 {% include runners/code.html
@@ -713,8 +713,8 @@ Translate player lookup and conditional display logic into Python.
 # Find a player position, then use it to retrieve matching playtime.
 def find_player(player_list, target_name):
     index = 1
-  for player in player_list:
-    if player == target_name:
+    for player in player_list:
+        if player == target_name:
             return index
         index += 1
     return -1
@@ -726,14 +726,14 @@ search_name = "PixelRider"
 position = find_player(players, search_name)
 
 if position > 0:
-  player_hours = hours_played[position - 1]
-  print("Welcome player, " + search_name + "!")
-  print("Player found at position: " + str(position))
-  print("Hours played today: " + str(player_hours))
-  if player_hours > 12:
-    print("Go touch grass.")
+    player_hours = hours_played[position - 1]
+    print("Welcome player, " + search_name + "!")
+    print("Player found at position: " + str(position))
+    print("Hours played today: " + str(player_hours))
+    if player_hours > 12:
+        print("Go touch grass.")
 else:
-  print("Player not found in roster")
+    print("Player not found in roster")
 {% endcapture %}
 
 {% include runners/code.html
@@ -801,10 +801,10 @@ Translate a procedure returning matched player hours into Python.
 def find_player_hours(players, hours_list, target_name):
     index = 1
 
-  for player in players:
-    if player == target_name:
-      hours = hours_list[index - 1]
-      return hours
+    for player in players:
+        if player == target_name:
+            hours = hours_list[index - 1]
+            return hours
         index += 1
 
     return -1
@@ -816,12 +816,12 @@ search_name = "PixelRider"
 result = find_player_hours(players, hours_list, search_name)
 
 if result > 0:
-  print("Welcome player, " + search_name + "!")
-  print("Hours played today: " + str(result))
-  if result > 12:
-    print("Go touch grass.")
+    print("Welcome player, " + search_name + "!")
+    print("Hours played today: " + str(result))
+    if result > 12:
+        print("Go touch grass.")
 else:
-  print("Player not found")
+    print("Player not found")
 {% endcapture %}
 
 {% include runners/code.html
