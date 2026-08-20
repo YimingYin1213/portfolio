@@ -40,7 +40,7 @@ export class CodeExecutor {
     const options = { ...this.fetchOptions, method: 'POST', body };
 
     try {
-      const res = await fetch(runURL, options);
+      const res = await this.fetchWithFallback(runURL, options);
       const result = await res.json();
       const output = result.output || '[no output]';
 
@@ -53,12 +53,97 @@ export class CodeExecutor {
         execTimeSpan.textContent = `⏱Execution time: ${Date.now() - startTime}ms`;
       }
     } catch (err) {
+      if (lang === 'python' && isLocalhost) {
+        await this.runPythonFallback(code, startTime);
+        return;
+      }
+
       if (lang === 'javascript' && isLocalhost) {
         this.runJavaScriptFallback(code, startTime);
       } else {
         outputDiv.textContent = 'Error: ' + err.message;
         if (execTimeSpan) execTimeSpan.textContent = '';
       }
+    }
+  }
+
+  async fetchWithFallback(url, options) {
+    try {
+      return await fetch(url, options);
+    } catch (primaryErr) {
+      // Retry without credentialed requests when cross-origin cookie policies block fetch.
+      const fallbackOptions = {
+        ...options,
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Origin': 'client'
+        }
+      };
+      return await fetch(url, fallbackOptions);
+    }
+  }
+
+  async ensurePyodide() {
+    if (window.loadPyodide && window.pyodide) {
+      return window.pyodide;
+    }
+
+    if (!window.loadPyodide) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Failed to load Pyodide runtime'));
+        document.head.appendChild(script);
+      });
+    }
+
+    if (!window.pyodide) {
+      window.pyodide = await window.loadPyodide();
+    }
+
+    return window.pyodide;
+  }
+
+  async runPythonFallback(code, startTime) {
+    const outputDiv = this.outputElement;
+    const execTimeSpan = this.execTimeElement;
+
+    try {
+      outputDiv.textContent = '⏳ Loading local Python runtime...';
+      const pyodide = await this.ensurePyodide();
+
+      await pyodide.runPythonAsync(`
+import sys, io
+sys.stdout = io.StringIO()
+sys.stderr = io.StringIO()
+      `);
+
+      await pyodide.runPythonAsync(code);
+
+      const capturedOutput = await pyodide.runPythonAsync(`
+stdout_value = sys.stdout.getvalue()
+stderr_value = sys.stderr.getvalue()
+stdout_value + stderr_value
+      `);
+
+      await pyodide.runPythonAsync(`
+import sys
+sys.stdout = sys.__stdout__
+sys.stderr = sys.__stderr__
+      `);
+
+      outputDiv.textContent = (capturedOutput && String(capturedOutput).trim().length > 0)
+        ? String(capturedOutput)
+        : '[no output]';
+
+      if (execTimeSpan) {
+        execTimeSpan.textContent = `⏱Execution time: ${Date.now() - startTime}ms (local Python fallback)`;
+      }
+    } catch (fallbackErr) {
+      outputDiv.textContent = 'Error: ' + fallbackErr.message;
+      if (execTimeSpan) execTimeSpan.textContent = '';
     }
   }
 

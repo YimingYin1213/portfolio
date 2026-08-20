@@ -17,12 +17,23 @@ function getLocalApiPreference() {
         if (override === "1") {
             localStorage.setItem("useLocalApi", "true");
         } else if (override === "0") {
-            localStorage.removeItem("useLocalApi");
+            localStorage.setItem("useLocalApi", "false");
         }
 
-        return localhostHosts.has(location.hostname) && localStorage.getItem("useLocalApi") === "true";
+        if (!localhostHosts.has(location.hostname)) {
+            return false;
+        }
+
+        const storedPreference = localStorage.getItem("useLocalApi");
+
+        // On local development hosts, default to local APIs unless explicitly disabled.
+        if (storedPreference === null) {
+            return true;
+        }
+
+        return storedPreference === "true";
     } catch {
-        return false;
+        return localhostHosts.has(location.hostname);
     }
 }
 
