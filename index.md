@@ -6,28 +6,103 @@ show_reading_time: false
 ---
 
 <style>
+    .neon-button-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
   .portfolio-button {
+        --neon-a: #00f5ff;
+        --neon-b: #44ff99;
+        --neon-surface: rgba(6, 12, 26, 0.84);
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+        padding: 10px 14px;
+        border: 1px solid rgba(0, 245, 255, 0.65);
+        border-radius: 10px;
+        font-weight: 700;
+        color: #dfffff;
+        background: linear-gradient(140deg, rgba(0, 245, 255, 0.09), rgba(68, 255, 153, 0.06), var(--neon-surface));
+        box-shadow: 0 0 0 1px rgba(0, 245, 255, 0.2) inset, 0 0 18px rgba(0, 245, 255, 0.24), 0 0 28px rgba(68, 255, 153, 0.16);
+        overflow: hidden;
     text-decoration: none;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, background-color 0.18s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
+        animation: neon-pulse 2.4s ease-in-out infinite;
   }
 
+    .portfolio-button::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 245, 255, 0.65) 100deg, rgba(68, 255, 153, 0.6) 200deg, transparent 360deg);
+        filter: blur(12px);
+        opacity: 0.42;
+        z-index: -1;
+        animation: neon-spin 5.6s linear infinite;
+    }
+
+    .portfolio-button::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -130%;
+        width: 52%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.46), transparent);
+        transform: skewX(-20deg);
+        animation: neon-scan 2.9s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    .portfolio-button > div {
+        background: transparent !important;
+        color: inherit !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        font-weight: inherit !important;
+        transition: none !important;
+    }
+
   .portfolio-button:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-    filter: brightness(1.05);
-    animation: button-bounce 0.22s ease-out;
+        transform: translateY(-3px) scale(1.03);
+        border-color: rgba(102, 255, 224, 0.95);
+        box-shadow: 0 0 0 1px rgba(102, 255, 224, 0.35) inset, 0 0 22px rgba(0, 245, 255, 0.45), 0 0 34px rgba(68, 255, 153, 0.3);
+        filter: brightness(1.08);
+        animation: button-bounce 0.25s ease-out;
   }
+
+    .portfolio-button:focus-visible {
+        outline: 2px solid rgba(68, 255, 153, 0.9);
+        outline-offset: 2px;
+    }
 
   @keyframes button-bounce {
     0% { transform: translateY(0) scale(1); }
-    35% { transform: translateY(-4px) scale(1.03); }
-    100% { transform: translateY(-2px) scale(1.02); }
+        35% { transform: translateY(-5px) scale(1.04); }
+        100% { transform: translateY(-3px) scale(1.03); }
+    }
+
+    @keyframes neon-pulse {
+        0%, 100% { box-shadow: 0 0 0 1px rgba(0, 245, 255, 0.2) inset, 0 0 16px rgba(0, 245, 255, 0.2), 0 0 26px rgba(68, 255, 153, 0.12); }
+        50% { box-shadow: 0 0 0 1px rgba(0, 245, 255, 0.34) inset, 0 0 24px rgba(0, 245, 255, 0.36), 0 0 40px rgba(68, 255, 153, 0.25); }
+    }
+
+    @keyframes neon-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes neon-scan {
+        0% { left: -130%; opacity: 0; }
+        18% { opacity: 1; }
+        55% { left: 130%; opacity: 0.95; }
+        100% { left: 130%; opacity: 0; }
   }
 </style>
 
@@ -38,7 +113,7 @@ Hi! My name is Yiming Yin
 
 > Coding starts with tools, explore these tools and procedures with a click.
 
-<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+<div class="neon-button-grid">
     <a class="portfolio-button" href="https://opencodingsociety.com" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid #FA8072; border-radius: 6px; font-weight: 700; transition: all 0.3s;">
         <img src="{{ '/favicon.ico' | relative_url }}" alt="OCS logo" style="width: 16px; height: 16px;">
         OCS
@@ -64,7 +139,7 @@ Hi! My name is Yiming Yin
 > Foundations in Tech are essential, click to see some of my lesson creations.
 
 
-<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+<div class="neon-button-grid">
     <a class="portfolio-button" href="{{site.baseurl}}/personal-accomplishment-yiming/cs111-college-ready/" style="text-decoration: none;">
         <div style="background-color: var(--green); color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;">
            CS111
@@ -95,28 +170,28 @@ Hi! My name is Yiming Yin
 
 #### CSSE
 
-<div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <a class="portfolio-button" href="https://precia-verma.github.io/Group-projects/snake" class="btn">
+<div class="neon-button-grid">
+    <a class="portfolio-button btn" href="https://precia-verma.github.io/Group-projects/snake">
         Snake
     </a>
-    <a class="portfolio-button" href="https://teamspace.opencodingsociety.com/team-space-portal" class="btn" style="background-color: var(--green); ">
+    <a class="portfolio-button btn" href="https://teamspace.opencodingsociety.com/team-space-portal" style="background-color: var(--green); ">
         Team Aquatic (Space)
     </a>
-    <a class="portfolio-button" href="{{site.baseurl}}/personal-accomplishment-yiming/version-2-review-csse/" class="btn" style="background-color: var(--blue);">
+    <a class="portfolio-button btn" href="{{site.baseurl}}/personal-accomplishment-yiming/version-2-review-csse/" style="background-color: var(--blue);">
         Version 2
     </a>
-    <a class="portfolio-button" href="{{site.baseurl}}/gamify" class="btn" style="background-color: var(--teal);">
+    <a class="portfolio-button btn" href="{{site.baseurl}}/gamify" style="background-color: var(--teal);">
        Gamify
     </a>
-    <a class="portfolio-button" href="{{site.baseurl}}/cs-pathway" class="btn" style="background-color: var(--orange);">
+    <a class="portfolio-button btn" href="{{site.baseurl}}/cs-pathway" style="background-color: var(--orange);">
        CS Pathway
     </a>
 </div>
 
 #### AP CSP
 
-<div style="display: flex; flex-wrap: wrap; gap: 10px;">
-    <a class="portfolio-button" href="{{site.baseurl}}/week-1-sprint-1/" class="btn" style="background-color: var(--orange);">
+<div class="neon-button-grid">
+    <a class="portfolio-button btn" href="{{site.baseurl}}/week-1-sprint-1/" style="background-color: var(--orange);">
         Week 1 Sprint 1
     </a>
 </div>
