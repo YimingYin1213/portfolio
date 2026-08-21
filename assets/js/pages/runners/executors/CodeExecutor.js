@@ -44,7 +44,7 @@ export class CodeExecutor {
       const result = await res.json();
       const output = result.output || '[no output]';
 
-      if (lang === 'javascript' && isLocalhost && output.includes("No such file or directory: 'node'")) {
+      if (lang === 'javascript' && output.includes("No such file or directory: 'node'")) {
         throw new Error('Node.js not available on backend');
       }
 
@@ -58,8 +58,9 @@ export class CodeExecutor {
         return;
       }
 
-      if (lang === 'javascript' && isLocalhost) {
+      if (lang === 'javascript') {
         this.runJavaScriptFallback(code, startTime);
+        return;
       } else {
         outputDiv.textContent = 'Error: ' + err.message;
         if (execTimeSpan) execTimeSpan.textContent = '';

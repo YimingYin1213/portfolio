@@ -55,7 +55,7 @@ description: Pseudocode to Python and JavaScript translation cheat sheet with ru
 
 ## Week 1 Sprint 1
 
-Pseudocode translation cheat sheet with Python and JavaScript code runners for each concept block.
+Code examples that demostrate how the server of a game uses player data (given) to produce outputs. Each code example are changed and fits into the themes of coding.
 
 ## Quick Translation Cheat Sheet
 
@@ -76,6 +76,8 @@ Pseudocode translation cheat sheet with Python and JavaScript code runners for e
 ---
 
 ## 1. Input
+
+**CPT Requirement:** Your program must produce output visible to the user. College Board pseudocode uses `DISPLAY()` to show results, including strings, numbers, or variable values. On the exam, you will trace `DISPLAY` statements to predict program output. For CPT, clear output demonstrates your program's purpose and functionality.
 
 {% capture challenge_1_py %}
 Translate player input and display logic into Python.
@@ -127,6 +129,8 @@ if (hoursPlayedToday > 12) {
 ---
 
 ## 2. List
+
+**CPT Requirement:** Your program must get input from the user. College Board pseudocode uses `INPUT()` to collect data, which makes programs interactive and personalized. On exam questions, you will identify where input affects program behavior. For CPT scoring, input shows your program responds to different user data.
 
 {% capture challenge_2_py %}
 Translate player session tracking with list traversal into Python.
@@ -185,6 +189,8 @@ if (totalHours > 12) {
 ---
 
 ## 3. Procedure
+
+**CPT Requirement:** Your program must use a list (or another collection type) to manage multiple data values. **Critical exam detail:** College Board pseudocode lists start at index `1`, not `0`. Accessing index `0` or going beyond `LENGTH` terminates the program. On exam questions, you will trace list operations and identify index errors. For CPT, lists help demonstrate algorithm implementation and complexity management.
 
 {% capture challenge_3_py %}
 Translate a player-status procedure with nested selection into Python.
@@ -248,6 +254,8 @@ console.log(status);
 
 ## 4. Sequence
 
+**CPT Requirement:** You must create at least one student-developed procedure with parameters. College Board pseudocode uses `PROCEDURE name(parameters)` with optional `RETURN(value)`. This demonstrates abstraction by hiding complexity and enabling reuse. On the exam, you will trace procedure calls and parameter passing. For CPT, the procedure must be called at least once and contribute to functionality.
+
 {% capture challenge_4_py %}
 Translate a sequence that computes total playtime and decision output into Python.
 {% endcapture %}
@@ -305,6 +313,8 @@ if (totalHours > 12) {
 
 ## 5. Selection
 
+**Exam Concept:** Sequencing means statements execute in order, line by line. Every program uses sequence as the default flow. On exam questions, you will trace execution order to predict variable values. For CPT, logical step-by-step calculations show you understand systematic data processing.
+
 {% capture challenge_5_py %}
 Translate conditional playtime checks into Python.
 {% endcapture %}
@@ -361,6 +371,8 @@ if (hoursPlayedToday > 12) {
 ---
 
 ## 6. Iteration
+
+**CPT Requirement:** Your algorithm must include selection using `IF` or `IF/ELSE` statements. College Board pseudocode uses curly braces `{ }` to mark code blocks. Selection makes decisions based on Boolean conditions and allows different outcomes. On the exam, you will trace which branch executes for specific condition values. For CPT, selection demonstrates handling different data appropriately.
 
 {% capture challenge_6_py %}
 Translate repeat-until style play session entry into Python.
@@ -450,6 +462,8 @@ if (totalHours > 12) {
 
 ## 7. Algorithm
 
+**CPT Requirement:** Your algorithm must include iteration (loops) using `FOR EACH`, `REPEAT TIMES`, or `REPEAT UNTIL`. Iteration processes multiple data items without duplicate code. On the exam, you will trace loop counters and predict how many times a block executes. For CPT, iteration demonstrates handling collections and algorithm complexity.
+
 {% capture challenge_7_py %}
 Translate a playtime-average algorithm into Python.
 {% endcapture %}
@@ -533,6 +547,8 @@ if (totalHours > 12) {
 ---
 
 ## 8. List Operations
+
+**CPT Requirement:** Your algorithm must integrate sequencing, selection, and iteration to solve a meaningful problem. College Board defines an algorithm as a precise step-by-step process that accomplishes a task. On the exam, you will analyze complete algorithms for correctness and efficiency. For CPT, this is the core implementation where you demonstrate complexity and earn algorithm points.
 
 {% capture challenge_8_py %}
 Translate linear search of player names with playtime checks into Python.
@@ -621,6 +637,8 @@ if (position > 0) {
 
 ## 9. Search Algorithm
 
+**Exam Topic:** College Board pseudocode includes key list operations: `APPEND(list, value)` adds to end, `INSERT(list, index, value)` adds at position, `REMOVE(list, index)` deletes by position, and `LENGTH(list)` returns count. On exam questions, you will trace how these operations change lists and indices. For CPT, list manipulation demonstrates data management and algorithm complexity.
+
 {% capture challenge_9_py %}
 Translate player task list operations into Python.
 {% endcapture %}
@@ -704,6 +722,8 @@ if (hoursPlayedToday > 12) {
 ---
 
 ## 10. Boolean Logic
+
+**Exam Topic:** Linear search is a common AP exam algorithm pattern. It demonstrates iteration through a list, selection to check conditions, and return values. On exam questions, you will identify search logic, trace execution, and determine returned values for found and not-found cases. For CPT, implementing search demonstrates algorithmic thinking and practical data processing.
 
 {% capture challenge_10_py %}
 Translate player lookup and conditional display logic into Python.
@@ -791,6 +811,8 @@ if (position > 0) {
 ---
 
 ## 11. Find Student Grade
+
+**Exam Concept:** College Board pseudocode uses `AND`, `OR`, and `NOT` to combine conditions. Boolean expressions evaluate to true or false. On the exam, you will trace complex conditions and predict which blocks execute. For CPT, Boolean logic supports more sophisticated decisions, such as validation and access checks, and demonstrates program complexity.
 
 {% capture challenge_11_py %}
 Translate a procedure returning matched player hours into Python.
