@@ -3,6 +3,9 @@
   id="runner-{{ include.runner_id }}"
   data-runner-id="{{ include.runner_id }}"
   data-default-code="{{ include.code | jsonify | escape }}"
+  data-code-python="{{ include.code_python | default: '' | jsonify | escape }}"
+  data-code-java="{{ include.code_java | default: '' | jsonify | escape }}"
+  data-code-javascript="{{ include.code_javascript | default: '' | jsonify | escape }}"
   data-storage-key="{{ page.permalink | replace: '/', '_' }}_{{ include.runner_id }}">
   {% capture code_runner_title %}Code Runner Challenge {% if include.challenge_number %}#{{ include.challenge_number }}{% endif %}{% endcapture %}
   {% include runners/fragments/challenge-box.html title=code_runner_title challenge=include.challenge %}
@@ -65,6 +68,11 @@ import { pythonURI, javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api
   
   const initialLang = "{{ include.language }}";
   const defaultCode = JSON.parse(container.dataset.defaultCode || "\"\"");
+  const languageCodeMap = {
+    python: JSON.parse(container.dataset.codePython || "\"\""),
+    java: JSON.parse(container.dataset.codeJava || "\"\""),
+    javascript: JSON.parse(container.dataset.codeJavascript || "\"\"")
+  };
   const editorHeight = "{{ include.height }}";
   const storageKey = container.dataset.storageKey;
   const runner = new BaseRunner(container, { storageKey });
@@ -125,6 +133,13 @@ import { pythonURI, javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api
       editor.setOption("mode", "text/x-java");
     } else if (lang === "javascript") {
       editor.setOption("mode", "javascript");
+    }
+
+    // If language-specific code was provided, swap editor content to match.
+    const nextCode = languageCodeMap[lang];
+    if (typeof nextCode === "string" && nextCode.length > 0) {
+      editor.setValue(nextCode);
+      editor.refresh();
     }
   });
 

@@ -41,6 +41,9 @@ export class CodeExecutor {
 
     try {
       const res = await this.fetchWithFallback(runURL, options);
+      if (!res.ok) {
+        throw new Error(`Runner request failed (${res.status})`);
+      }
       const result = await res.json();
       const output = result.output || '[no output]';
 
@@ -53,7 +56,7 @@ export class CodeExecutor {
         execTimeSpan.textContent = `⏱Execution time: ${Date.now() - startTime}ms`;
       }
     } catch (err) {
-      if (lang === 'python' && isLocalhost) {
+      if (lang === 'python') {
         await this.runPythonFallback(code, startTime);
         return;
       }
@@ -72,14 +75,15 @@ export class CodeExecutor {
     try {
       return await fetch(url, options);
     } catch (primaryErr) {
-      // Retry without credentialed requests when cross-origin cookie policies block fetch.
+      // Retry with a minimal CORS request when stricter preflight/cookie rules block fetch.
+      const fallbackHeaders = {
+        'Content-Type': 'application/json'
+      };
+
       const fallbackOptions = {
         ...options,
         credentials: 'omit',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Origin': 'client'
-        }
+        headers: fallbackHeaders
       };
       return await fetch(url, fallbackOptions);
     }

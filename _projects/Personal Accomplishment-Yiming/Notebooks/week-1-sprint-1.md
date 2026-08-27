@@ -104,12 +104,6 @@ if (hours_played_today > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-input-ps"
-   language="javascript"
-   challenge=challenge_1_ps
-   code=code_1_ps
-%}
 
 {% capture challenge_1_py %}
 Translate player input and display logic into Python.
@@ -127,12 +121,6 @@ if hours_played_today > 12:
   print("Go touch grass.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-input-py"
-   language="python"
-   challenge=challenge_1_py
-   code=code_1_py
-%}
 
 {% capture challenge_1_js %}
 Translate player input and display logic into JavaScript.
@@ -152,11 +140,14 @@ if (hoursPlayedToday > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-input-js"
+   runner_id="wk1s1-input"
    language="javascript"
-   challenge=challenge_1_js
-   code=code_1_js
+   challenge=challenge_1_ps
+   code=code_1_ps
+   code_python=code_1_py
+   code_javascript=code_1_js
 %}
+
 
 ---
 
@@ -191,12 +182,6 @@ if (total_hours > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-list-ps"
-   language="javascript"
-   challenge=challenge_2_ps
-   code=code_2_ps
-%}
 
 {% capture challenge_2_py %}
 Translate player session tracking with list traversal into Python.
@@ -217,12 +202,6 @@ if total_hours > 12:
   print("Go touch grass.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-list-py"
-   language="python"
-   challenge=challenge_2_py
-   code=code_2_py
-%}
 
 {% capture challenge_2_js %}
 Translate player session tracking with list traversal into JavaScript.
@@ -246,11 +225,14 @@ if (totalHours > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-list-js"
+   runner_id="wk1s1-list"
    language="javascript"
-   challenge=challenge_2_js
-   code=code_2_js
+   challenge=challenge_2_ps
+   code=code_2_ps
+   code_python=code_2_py
+   code_javascript=code_2_js
 %}
+
 
 ---
 
@@ -290,12 +272,6 @@ console.log("Welcome player, " + player_name + "!");
 console.log(status);
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-procedure-ps"
-   language="javascript"
-   challenge=challenge_3_ps
-   code=code_3_ps
-%}
 
 {% capture challenge_3_py %}
 Translate a player-status procedure with nested selection into Python.
@@ -318,12 +294,6 @@ print("Welcome player, " + player_name + "!")
 print(status)
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-procedure-py"
-   language="python"
-   challenge=challenge_3_py
-   code=code_3_py
-%}
 
 {% capture challenge_3_js %}
 Translate a player-status procedure with nested selection into JavaScript.
@@ -349,11 +319,14 @@ console.log(status);
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-procedure-js"
+   runner_id="wk1s1-procedure"
    language="javascript"
-   challenge=challenge_3_js
-   code=code_3_js
+   challenge=challenge_3_ps
+   code=code_3_ps
+   code_python=code_3_py
+   code_javascript=code_3_js
 %}
+
 
 ---
 
@@ -388,12 +361,6 @@ if (total_hours > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-sequence-ps"
-   language="javascript"
-   challenge=challenge_4_ps
-   code=code_4_ps
-%}
 
 {% capture challenge_4_py %}
 Translate a sequence that computes total playtime and decision output into Python.
@@ -414,12 +381,6 @@ if total_hours > 12:
   print("Go touch grass.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-sequence-py"
-   language="python"
-   challenge=challenge_4_py
-   code=code_4_py
-%}
 
 {% capture challenge_4_js %}
 Translate a sequence that computes total playtime and decision output into JavaScript.
@@ -442,11 +403,14 @@ if (totalHours > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-sequence-js"
+   runner_id="wk1s1-sequence"
    language="javascript"
-   challenge=challenge_4_js
-   code=code_4_js
+   challenge=challenge_4_ps
+   code=code_4_ps
+   code_python=code_4_py
+   code_javascript=code_4_js
 %}
+
 
 ---
 
@@ -478,12 +442,6 @@ if (hours_played_today > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-selection-ps"
-   language="javascript"
-   challenge=challenge_5_ps
-   code=code_5_ps
-%}
 
 {% capture challenge_5_py %}
 Translate conditional playtime checks into Python.
@@ -504,12 +462,6 @@ else:
   print("Nice balance today.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-selection-py"
-   language="python"
-   challenge=challenge_5_py
-   code=code_5_py
-%}
 
 {% capture challenge_5_js %}
 Translate conditional playtime checks into JavaScript.
@@ -532,11 +484,14 @@ if (hoursPlayedToday > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-selection-js"
+   runner_id="wk1s1-selection"
    language="javascript"
-   challenge=challenge_5_js
-   code=code_5_js
+   challenge=challenge_5_ps
+   code=code_5_ps
+   code_python=code_5_py
+   code_javascript=code_5_js
 %}
+
 
 ---
 
@@ -594,12 +549,6 @@ if (total_hours > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-iteration-ps"
-   language="javascript"
-   challenge=challenge_6_ps
-   code=code_6_ps
-%}
 
 {% capture challenge_6_py %}
 Translate repeat-until style play session entry into Python.
@@ -635,12 +584,6 @@ if total_hours > 12:
     print("Go touch grass.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-iteration-py"
-   language="python"
-   challenge=challenge_6_py
-   code=code_6_py
-%}
 
 {% capture challenge_6_js %}
 Translate repeat-until style play session entry into JavaScript.
@@ -679,11 +622,14 @@ if (totalHours > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-iteration-js"
+   runner_id="wk1s1-iteration"
    language="javascript"
-   challenge=challenge_6_js
-   code=code_6_js
+   challenge=challenge_6_ps
+   code=code_6_ps
+   code_python=code_6_py
+   code_javascript=code_6_js
 %}
+
 
 ---
 
@@ -739,12 +685,6 @@ if (total_hours > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-algorithm-ps"
-   language="javascript"
-   challenge=challenge_7_ps
-   code=code_7_ps
-%}
 
 {% capture challenge_7_py %}
 Translate a playtime-average algorithm into Python.
@@ -777,12 +717,6 @@ if total_hours > 12:
     print("Go touch grass.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-algorithm-py"
-   language="python"
-   challenge=challenge_7_py
-   code=code_7_py
-%}
 
 {% capture challenge_7_js %}
 Translate a playtime-average algorithm into JavaScript.
@@ -820,11 +754,14 @@ if (totalHours > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-algorithm-js"
+   runner_id="wk1s1-algorithm"
    language="javascript"
-   challenge=challenge_7_js
-   code=code_7_js
+   challenge=challenge_7_ps
+   code=code_7_ps
+   code_python=code_7_py
+   code_javascript=code_7_js
 %}
+
 
 ---
 
@@ -886,12 +823,6 @@ if (position > 0) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-listops-ps"
-   language="javascript"
-   challenge=challenge_8_ps
-   code=code_8_ps
-%}
 
 {% capture challenge_8_py %}
 Translate linear search of player names with playtime checks into Python.
@@ -924,12 +855,6 @@ else:
     print("Not found")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-listops-py"
-   language="python"
-   challenge=challenge_8_py
-   code=code_8_py
-%}
 
 {% capture challenge_8_js %}
 Translate linear search of player names with playtime checks into JavaScript.
@@ -970,11 +895,14 @@ if (position > 0) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-listops-js"
+   runner_id="wk1s1-listops"
    language="javascript"
-   challenge=challenge_8_js
-   code=code_8_js
+   challenge=challenge_8_ps
+   code=code_8_ps
+   code_python=code_8_py
+   code_javascript=code_8_js
 %}
+
 
 ---
 
@@ -1025,12 +953,6 @@ if (hours_played_today > 12) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-searchalgo-ps"
-   language="javascript"
-   challenge=challenge_9_ps
-   code=code_9_ps
-%}
 
 {% capture challenge_9_py %}
 Translate player task list operations into Python.
@@ -1064,12 +986,6 @@ if hours_played_today > 12:
     print("Go touch grass.")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-searchalgo-py"
-   language="python"
-   challenge=challenge_9_py
-   code=code_9_py
-%}
 
 {% capture challenge_9_js %}
 Translate player task list operations into JavaScript.
@@ -1106,11 +1022,14 @@ if (hoursPlayedToday > 12) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-searchalgo-js"
+   runner_id="wk1s1-searchalgo"
    language="javascript"
-   challenge=challenge_9_js
-   code=code_9_js
+   challenge=challenge_9_ps
+   code=code_9_ps
+   code_python=code_9_py
+   code_javascript=code_9_js
 %}
+
 
 ---
 
@@ -1172,12 +1091,6 @@ if (position > 0) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-boolean-ps"
-   language="javascript"
-   challenge=challenge_10_ps
-   code=code_10_ps
-%}
 
 {% capture challenge_10_py %}
 Translate player lookup and conditional display logic into Python.
@@ -1210,12 +1123,6 @@ else:
     print("Player not found in roster")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-boolean-py"
-   language="python"
-   challenge=challenge_10_py
-   code=code_10_py
-%}
 
 {% capture challenge_10_js %}
 Translate player lookup and conditional display logic into JavaScript.
@@ -1256,11 +1163,14 @@ if (position > 0) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-boolean-js"
+   runner_id="wk1s1-boolean"
    language="javascript"
-   challenge=challenge_10_js
-   code=code_10_js
+   challenge=challenge_10_ps
+   code=code_10_ps
+   code_python=code_10_py
+   code_javascript=code_10_js
 %}
+
 
 ---
 
@@ -1321,12 +1231,6 @@ if (result > 0) {
 }
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-final-ps"
-   language="javascript"
-   challenge=challenge_11_ps
-   code=code_11_ps
-%}
 
 {% capture challenge_11_py %}
 Translate a procedure returning matched player hours into Python.
@@ -1360,12 +1264,6 @@ else:
     print("Player not found")
 {% endcapture %}
 
-{% include runners/code.html
-   runner_id="wk1s1-final-py"
-   language="python"
-   challenge=challenge_11_py
-   code=code_11_py
-%}
 
 {% capture challenge_11_js %}
 Translate a procedure returning matched player hours into JavaScript.
@@ -1405,11 +1303,14 @@ if (result > 0) {
 {% endcapture %}
 
 {% include runners/code.html
-   runner_id="wk1s1-final-js"
+   runner_id="wk1s1-final"
    language="javascript"
-   challenge=challenge_11_js
-   code=code_11_js
+   challenge=challenge_11_ps
+   code=code_11_ps
+   code_python=code_11_py
+   code_javascript=code_11_js
 %}
+
 
 ---
 

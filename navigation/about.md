@@ -197,7 +197,7 @@ I started playing badminton with my dad since I was 7 years old, however I pause
 I'm a big fan of math, maybe not as good as someone, but I enjoy solving mathematical problems and share what I've learned.
 <img class="hobby-image" src="{{site.baseurl}}/images/about/Calculus.jpeg" alt="Math and calculus practice">
 
-I also started loving computer science after 10th grade, I'm obsessed with the feeling that when other people is using my product.
+I also like computer science, I'm obsessed with the feeling that when other people is using my product.
 <img class="hobby-image" src="{{site.baseurl}}/images/about/Computing.jpeg" alt="Computer science project work">
 
 I also like gaming, Roblox was my first ever game after I moved to the U.S. and I started to play Brawl Stars since freshman year in high school.
