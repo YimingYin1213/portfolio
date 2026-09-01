@@ -197,3 +197,8 @@ Hi! My name is Yiming Yin
 </div>
 
 <br>
+<div class="ocs__links">
+    <a class="ocs__btn iridescent" href="{{site.baseurl}}/Ideation">
+        Week 3 Ideation Page
+        </a>
+</div>
