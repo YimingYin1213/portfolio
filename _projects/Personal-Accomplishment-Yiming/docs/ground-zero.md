@@ -194,9 +194,9 @@ flowchart TD
 
 | ID  | Area                       | Self Rank | Peer | Teacher |
 | --- | --------------------------- | --------- | ---- | ------- |
-| T10 | Tech / Cyber Growth        | 4         | —    | —       |
+| T10 | Tech / Cyber Growth        | 4         | =    | —       |
 | T11 | Learning Through Mistakes  | 4         | —    | —       |
-| T12 | Tech / Cyber Talk          | 3         | —    | —       |
+| T12 | Tech / Cyber Talk          | 3         | +    | —       |
 
 ### Technical Ranking Guidelines
 
@@ -215,26 +215,26 @@ flowchart TD
 
 | ID  | Area               | Self Rank | Peer | Teacher |
 | --- | ------------------- | --------- | ---- | ------- |
-| P01 | Attendance / Tardy | 5         | —    | —       |
-| P02 | Work Habits        | 4         | —    | —       |
-| P03 | Integrity          | 4         | —    | —       |
+| P01 | Attendance / Tardy | 5         | =    | —       |
+| P02 | Work Habits        | 4         | -    | —       |
+| P03 | Integrity          | 4         | +    | —       |
 
 ### Professional Evaluation Matrix — Collaboration
 
 | ID  | Area                 | Self Rank | Peer | Teacher |
 | --- | --------------------- | --------- | ---- | ------- |
-| P04 | Communication        | 3         | —    | —       |
-| P05 | Help Seeking         | 4         | —    | —       |
-| P06 | Mentoring / Advocacy | 3         | —    | —       |
+| P04 | Communication        | 3         | =    | —       |
+| P05 | Help Seeking         | 4         | =    | —       |
+| P06 | Mentoring / Advocacy | 3         | =    | —       |
 
 ### Professional Evaluation Matrix — Professional Skills
 
 | ID  | Area         | Self Rank | Peer | Teacher |
 | --- | ------------- | --------- | ---- | ------- |
 | P07 | Timeliness   | 3         | —    | —       |
-| P08 | Persistence  | 3         | —    | —       |
+| P08 | Persistence  | 3         | +    | —       |
 | P09 | Organization | 4         | —    | —       |
-| P10 | Engagement   | 3         | —    | —       |
+| P10 | Engagement   | 3         | +    | —       |
 
 ### Professional Ranking Guidelines
 
