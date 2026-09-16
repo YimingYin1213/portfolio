@@ -201,4 +201,7 @@ Hi! My name is Yiming Yin
     <a class="ocs__btn iridescent" href="{{site.baseurl}}/Ideation">
         Week 3 Ideation Page
         </a>
+    <a class="ocs__btn alert-green iridescent" href="{{site.baseurl}}/ground-zero">
+        Ground Zero
+    </a>
 </div>

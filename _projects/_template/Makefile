@@ -16,7 +16,7 @@ PROJECT_SLUG = $(subst $(SPACE),-,$(PROJECT_NAME))
 NOTEBOOK_FILENAME = $(DATE_OF_CREATION)-$(PROJECT_NAME).ipynb
 
 # Workspace root - auto-detect depth (supports both flat and nested structures)
-# If in _projects/category/project → ../../.. 
+# If in _projects/category/project → ../../..
 # If in _projects/project → ../..
 ifeq ($(wildcard ../../Makefile),)
     WORKSPACE_ROOT = ../../..
@@ -151,9 +151,28 @@ watch:
 ###########################################
 
 docs:
+	@# Root-level markdown files (e.g. ground-zero.md sitting directly in the project folder)
+	@ROOT_MD_FOUND=0; \
+	for doc in *.md; do \
+		if [ -f "$$doc" ]; then \
+			ROOT_MD_FOUND=1; \
+			break; \
+		fi; \
+	done; \
+	if [ "$$ROOT_MD_FOUND" = "1" ]; then \
+		echo "📚 Publishing $(PROJECT_NAME) root documentation..."; \
+		mkdir -p "$(DOCS_DEST)"; \
+		for doc in *.md; do \
+			if [ -f "$$doc" ]; then \
+				filename=$$(basename "$$doc"); \
+				safe_filename=$$(printf '%s' "$$filename" | tr ' ' '-'); \
+				cp "$$doc" "$(DOCS_DEST)/$(DATE_OF_CREATION)-$(PROJECT_SLUG)-$$safe_filename" 2>/dev/null || true; \
+			fi; \
+		done; \
+	fi
 	@if [ -d "docs" ]; then \
 		echo "📚 Publishing $(PROJECT_NAME) documentation..."; \
-			mkdir -p "$(DOCS_DEST)"; \
+		mkdir -p "$(DOCS_DEST)"; \
 		for doc in docs/*.md; do \
 			if [ -f "$$doc" ]; then \
 				filename=$$(basename "$$doc"); \
@@ -167,8 +186,8 @@ docs:
 		mkdir -p "$(DOCS_DEST)"; \
 		find Notebooks -maxdepth 1 -name '*_IPYNB_2_.md' -exec /bin/bash -c 'for doc in "$$@"; do filename=$$(basename "$$doc"); safe_filename=$$(printf "%s" "$$filename" | tr " " "-"); cp "$$doc" "$(DOCS_DEST)/$(DATE_OF_CREATION)-$(PROJECT_SLUG)-$$safe_filename" 2>/dev/null || true; done' _ {} +; \
 	fi
-	@if [ -d "docs" ] || ls Notebooks/*_IPYNB_2_.md >/dev/null 2>&1; then \
-		echo "✓ Documentation published to _posts/projects/$(PROJECT_NAME)/"; \
+	@if [ -f *.md ] 2>/dev/null || [ -d "docs" ] || ls Notebooks/*_IPYNB_2_.md >/dev/null 2>&1; then \
+		echo "✓ Documentation published to _posts/projects/$(PROJECT_SLUG)/"; \
 	fi
 
 docs-clean:

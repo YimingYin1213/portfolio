@@ -21,6 +21,9 @@ github_username: jm1021
 github_repo: "portfolio" 
 baseurl: "/portfolio" 
 future: true
+kramdown:
+  input: GFM
+  hard_wrap: false
 
 # Build settings
 # --------------
