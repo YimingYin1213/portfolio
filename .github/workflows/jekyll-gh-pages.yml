@@ -53,11 +53,11 @@ jobs:
 
       - name: Build personal accomplishment project
         run: |
-          if [ ! -f "_projects/Personal Accomplishment-Yiming/Makefile" ]; then
-            cp "_projects/_template/Makefile" "_projects/Personal Accomplishment-Yiming/Makefile"
+          if [ ! -f "_projects/Personal-Accomplishment-Yiming/Makefile" ]; then
+            cp "_projects/_template/Makefile" "_projects/Personal-Accomplishment-Yiming/Makefile"
           fi
-          make -C "_projects/Personal Accomplishment-Yiming" build
-          make -C "_projects/Personal Accomplishment-Yiming" docs
+          make -C "_projects/Personal-Accomplishment-Yiming" build
+          make -C "_projects/Personal-Accomplishment-Yiming" docs
 
       - name: Verify registered docs output
         run: |
