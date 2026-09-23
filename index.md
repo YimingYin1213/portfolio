@@ -200,8 +200,11 @@ Hi! My name is Yiming Yin
 <div class="ocs__links">
     <a class="ocs__btn iridescent" href="{{site.baseurl}}/Ideation">
         Week 3 Ideation Page
-        </a>
+    </a>
     <a class="ocs__btn alert-green iridescent" href="{{site.baseurl}}/ground-zero">
         Ground Zero
+    </a>
+    <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/csp/python/math-expressions/hw">
+        2026-09-22 Math Expressions Homework
     </a>
 </div>
