@@ -216,4 +216,7 @@ Hi! My name is Yiming Yin
     <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/python/conditionals-hw">
         2026-09-30 Conditionals Homework
     </a>
+    <a class="ocs__btn alert-green iridescent" href="{{site.baseurl}}/2018-practice-exam-trimester-1/">
+        2018 Practice Exam Tri 1
+    </a>
 </div>
