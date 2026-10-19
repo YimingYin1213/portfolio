@@ -189,6 +189,7 @@ import { pythonURI, javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api
 
   // Font size changer
   fontSizeSelect.addEventListener("change", () => {
+    if (!editor) return;
     const size = fontSizeSelect.value;
     container.querySelector('.CodeMirror').style.fontSize = size + 'px';
     editor.refresh();
@@ -196,7 +197,7 @@ import { pythonURI, javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api
 
   // Auto-substitute pseudocode shorthand as the user types
   const pseudoSubs = [['<--','←',3],['!=','≠',2],['>=','≥',2],['<=','≤',2]];
-  editor.on('change', (cm, change) => {
+  if (editor) editor.on('change', (cm, change) => {
     if (langSelect.value !== 'pseudocode') return;
     if (change.origin !== '+input') return;
     const cursor = cm.getCursor();
@@ -212,6 +213,7 @@ import { pythonURI, javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api
 
   // Language switcher
   langSelect.addEventListener("change", () => {
+    if (!editor) return;
     const lang = langSelect.value;
     if (lang === "python") {
       editor.setOption("mode", "python");

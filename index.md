@@ -207,7 +207,7 @@ Hi! My name is Yiming Yin
     <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/python/strings-homework">
         2026-09-21 Strings Homework
     </a>
-    <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/csp/python/math-expressions/hw">
+    <a class="ocs__btn alert-red iridescent" href="{{ '/csp/python/math-expressions/hw' | relative_url }}">
         2026-09-22 Math Expressions Homework
     </a>
     <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/_notebooks/2026-09-23-variables">
