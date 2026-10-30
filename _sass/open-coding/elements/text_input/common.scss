@@ -31,3 +31,25 @@ input, textarea {
 
     transition: all 0.3s ease;
 }
+
+// OCS input grammar
+.ocs__input {
+    @extend input;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.ocs__input--large {
+    width: 100%;
+    max-width: 500px;
+    font-size: 1.2em;
+}
+
+.ocs__input--compact {
+    padding: 6px 10px;
+    font-size: 0.9em;
+}
+
+.ocs__input--gradient {
+    background-image: $gradient1;
+}

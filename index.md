@@ -213,6 +213,18 @@ Hi! My name is Yiming Yin
     <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/_notebooks/2026-09-23-variables">
         2026-09-23 UESL 3.1 Homework
     </a>
+    <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/_notebooks/2026-10-1-ocs-sass-containers">
+        OCS Sass Containers
+    </a>
+    <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/_notebooks/2026-10-1-ocs-grids-sass-lesson">
+        OCS Grids Grammar
+    </a>
+    <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/_notebooks/2026-10-1-ocs-sass-buttons-grammar">
+        OCS Sass Buttons Grammar
+    </a>
+    <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/_notebooks/2026-10-1-sass-inputs">
+        Sass Inputs
+    </a>
     <a class="ocs__btn alert-red iridescent" href="{{site.baseurl}}/python/conditionals-hw">
         2026-09-30 Conditionals Homework
     </a>
